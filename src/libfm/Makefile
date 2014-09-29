@@ -8,13 +8,14 @@ OBJECTS := \
 all: libFM transpose convert
 
 libFM: libfm.o
+	mkdir -p $(BIN_DIR)
 	g++ -O3 -Wall libfm.o -o $(BIN_DIR)libFM
 
 %.o: %.cpp
 	g++ -O3 -Wall -c $< -o $@
 
 clean:	clean_lib
-	mkdir $(BIN_DIR)
+	mkdir -p $(BIN_DIR)
 	rm -f $(BIN_DIR)libFM $(BIN_DIR)convert $(BIN_DIR)transpose
 
 clean_lib:
@@ -22,10 +23,10 @@ clean_lib:
 
 
 transpose: tools/transpose.o
-	mkdir $(BIN_DIR)
+	mkdir -p $(BIN_DIR)
 	g++ -O3 tools/transpose.o -o $(BIN_DIR)transpose
 
 convert: tools/convert.o
-	mkdir $(BIN_DIR)
+	mkdir -p $(BIN_DIR)
 	g++ -O3 tools/convert.o -o $(BIN_DIR)convert
 
