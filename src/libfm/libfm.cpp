@@ -61,7 +61,6 @@ using namespace std;
 
 int main(int argc, char **argv) { 
  	
- 	srand ( time(NULL) );
 	try {
 		CMDLine cmdline(argc, argv);
 		std::cout << "----------------------------------------------------------------------------" << std::endl;
@@ -91,6 +90,8 @@ int main(int argc, char **argv) {
 
 		const std::string param_verbosity	= cmdline.registerParameter("verbosity", "how much infos to print; default=0");
 		const std::string param_r_log		= cmdline.registerParameter("rlog", "write measurements within iterations to a file; default=''");
+		const std::string param_seed		= cmdline.registerParameter("seed", "integer value, default=None");
+
 		const std::string param_help            = cmdline.registerParameter("help", "this screen");
 
 		const std::string param_relation	= cmdline.registerParameter("relation", "BS: filenames for the relations, default=''");
@@ -107,6 +108,10 @@ int main(int argc, char **argv) {
 			return 0;
 		}
 		cmdline.checkParameters();
+		
+		// Seed
+		long int seed = cmdline.getValue(param_seed, time(NULL));
+		srand ( seed );
 
 		if (! cmdline.hasParameter(param_method)) { cmdline.setValue(param_method, "mcmc"); }
 		if (! cmdline.hasParameter(param_init_stdev)) { cmdline.setValue(param_init_stdev, "0.1"); }
