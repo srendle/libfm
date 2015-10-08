@@ -96,8 +96,10 @@ int main(int argc, char **argv) {
 
 		const std::string param_relation	= cmdline.registerParameter("relation", "BS: filenames for the relations, default=''");
 
-		const std::string param_cache_size = cmdline.registerParameter("cache_size", "cache size for data storage (only applicable if data is in binary format), default=infty");
+		const std::string param_cache_size	= cmdline.registerParameter("cache_size", "cache size for data storage (only applicable if data is in binary format), default=infty");
 
+		const std::string param_save_state 	= cmdline.registerParameter("save", "filename for store the FM state");
+		const std::string param_load_state 	= cmdline.registerParameter("load", "filename for load the FM state");
 
 		const std::string param_do_sampling	= "do_sampling";
 		const std::string param_do_multilevel	= "do_multilevel";
@@ -242,6 +244,20 @@ int main(int argc, char **argv) {
 			}			
 			fm.init();		
 			
+		}
+		
+		// (2.1) load the FM state
+		if (cmdline.hasParameter(param_load_state)) {
+			std::cout << "Loading FM state... \t" << std::endl;
+			if (cmdline.getValue(param_method).compare("sgd") || cmdline.getValue(param_method).compare("als")){ //load/save enabled only for SGD and ALS
+				if(!fm.loadState(cmdline.getValue(param_load_state))){
+					std::cout << "WARNING: malformed state file. Nothing will be loaded." << std::endl;
+					fm.init();
+				}
+			}
+			else{
+				std::cout << "WARNING: load/save enabled only for SGD and ALS. Nothing will be loaded." << std::endl;
+			}
 		}
 
 		// (3) Setup the learning method:
@@ -403,6 +419,17 @@ int main(int argc, char **argv) {
 			pred.setSize(test.num_cases);
 			fml->predict(test, pred);
 			pred.save(cmdline.getValue(param_out));	
+		}
+		
+		// () save the FM state
+		if (cmdline.hasParameter(param_save_state)) {
+			std::cout << "Saving FM state... \t" << std::endl;
+			if (cmdline.getValue(param_method).compare("sgd") || cmdline.getValue(param_method).compare("als")){ //load/save enabled only for SGD and ALS
+				fm.saveState(cmdline.getValue(param_save_state));
+			}
+			else{
+				std::cout << "WARNING: load/save enabled only for SGD and ALS. Nothing will be saved." << std::endl;
+			}
 		}
 				 	
 
