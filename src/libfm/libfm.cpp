@@ -98,8 +98,8 @@ int main(int argc, char **argv) {
 
 		const std::string param_cache_size	= cmdline.registerParameter("cache_size", "cache size for data storage (only applicable if data is in binary format), default=infty");
 
-		const std::string param_save_state 	= cmdline.registerParameter("save_model", "filename for writing the FM model");
-		const std::string param_load_state 	= cmdline.registerParameter("load_model", "filename for reading the FM model");
+		const std::string param_save_model 	= cmdline.registerParameter("save_model", "filename for writing the FM model");
+		const std::string param_load_model 	= cmdline.registerParameter("load_model", "filename for reading the FM model");
 
 		const std::string param_do_sampling	= "do_sampling";
 		const std::string param_do_multilevel	= "do_multilevel";
@@ -246,12 +246,12 @@ int main(int argc, char **argv) {
 			
 		}
 		
-		// (2.1) load the FM state
-		if (cmdline.hasParameter(param_load_state)) {
-			std::cout << "Loading FM state... \t" << std::endl;
+		// (2.1) load the FM model
+		if (cmdline.hasParameter(param_load_model)) {
+			std::cout << "Reading FM model... \t" << std::endl;
 			if (cmdline.getValue(param_method).compare("sgd") || cmdline.getValue(param_method).compare("als")){ //load/save enabled only for SGD and ALS
-				if(!fm.loadModel(cmdline.getValue(param_load_state))){
-					std::cout << "WARNING: malformed state file. Nothing will be loaded." << std::endl;
+				if(!fm.loadModel(cmdline.getValue(param_load_model))){
+					std::cout << "WARNING: malformed model file. Nothing will be loaded." << std::endl;
 					fm.init();
 				}
 			}
@@ -421,11 +421,11 @@ int main(int argc, char **argv) {
 			pred.save(cmdline.getValue(param_out));	
 		}
 		
-		// () save the FM state
-		if (cmdline.hasParameter(param_save_state)) {
-			std::cout << "Saving FM state... \t" << std::endl;
+		// () save the FM model
+		if (cmdline.hasParameter(param_save_model)) {
+			std::cout << "Writing FM model... \t" << std::endl;
 			if (cmdline.getValue(param_method).compare("sgd") || cmdline.getValue(param_method).compare("als")){ //load/save enabled only for SGD and ALS
-				fm.saveModel(cmdline.getValue(param_save_state));
+				fm.saveModel(cmdline.getValue(param_save_model));
 			}
 			else{
 				std::cout << "WARNING: load/save enabled only for SGD and ALS. Nothing will be saved." << std::endl;
