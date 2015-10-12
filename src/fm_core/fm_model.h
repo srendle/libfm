@@ -59,8 +59,8 @@ class fm_model {
 		void init();
 		double predict(sparse_row<FM_FLOAT>& x);
 		double predict(sparse_row<FM_FLOAT>& x, DVector<double> &sum, DVector<double> &sum_sqr);
-		void saveState(std::string state_file_path);
-		int loadState(std::string state_file_path);
+		void saveModel(std::string model_file_path);
+		int loadModel(std::string model_file_path);
 	private:
 		void splitString(const std::string& s, char c, std::vector<std::string>& v);
 	
@@ -128,56 +128,56 @@ double fm_model::predict(sparse_row<FM_FLOAT>& x, DVector<double> &sum, DVector<
 	return result;
 }
 
-/*out_state
- * Save the FM state (all the parameters) in a file.
+/*
+ * Write the FM model (all the parameters) in a file.
  */
-void fm_model::saveState(std::string state_file_path){
-	std::ofstream out_state;
-	out_state.open(state_file_path);
+void fm_model::saveModel(std::string model_file_path){
+	std::ofstream out_model;
+	out_model.open(model_file_path);
 	if (k0) {
-		out_state << "#global bias W0" << std::endl;
-		out_state << w0 << std::endl;
+		out_model << "#global bias W0" << std::endl;
+		out_model << w0 << std::endl;
 	}
 	if (k1) {
-		out_state << "#unary interactions Wj" << std::endl;
+		out_model << "#unary interactions Wj" << std::endl;
 		for (uint i = 0; i<num_attribute; i++){
-			out_state <<	w(i) << std::endl;
+			out_model <<	w(i) << std::endl;
 		}
 	}
-	out_state << "#pairwise interactions Vj,f" << std::endl;
+	out_model << "#pairwise interactions Vj,f" << std::endl;
 	for (uint i = 0; i<num_attribute; i++){
 		for (int f = 0; f < num_factor; f++) {
-			out_state << v(f,i);
-			if (f!=num_factor-1){ out_state << ' '; }
+			out_model << v(f,i);
+			if (f!=num_factor-1){ out_model << ' '; }
 		}
-		out_state << std::endl;
+		out_model << std::endl;
 	}
-	out_state.close();
+	out_model.close();
 }
 
 /*
- * Load the FM state (all the parameters) from a file.
+ * Read the FM model (all the parameters) from a file.
  * If no valid conversion could be performed, the function std::atof returns zero (0.0).
  */
-int fm_model::loadState(std::string state_file_path) {
+int fm_model::loadModel(std::string model_file_path) {
 	std::string line;
-	std::ifstream state_file (state_file_path);
-	if (state_file.is_open()){
+	std::ifstream model_file (model_file_path);
+	if (model_file.is_open()){
 		if (k0) {
-			if(!std::getline(state_file,line)){return 0;} // "#global bias W0"
-			if(!std::getline(state_file,line)){return 0;}
+			if(!std::getline(model_file,line)){return 0;} // "#global bias W0"
+			if(!std::getline(model_file,line)){return 0;}
 			w0 = std::atof(line.c_str());
 		}
 		if (k1) {
-			if(!std::getline(state_file,line)){return 0;} //"#unary interactions Wj"
+			if(!std::getline(model_file,line)){return 0;} //"#unary interactions Wj"
 			for (uint i = 0; i<num_attribute; i++){
-				if(!std::getline(state_file,line)){return 0;}
+				if(!std::getline(model_file,line)){return 0;}
 				w(i) = std::atof(line.c_str());
 			}
 		}
-		if(!std::getline(state_file,line)){return 0;}; // "#pairwise interactions Vj,f"
+		if(!std::getline(model_file,line)){return 0;}; // "#pairwise interactions Vj,f"
 		for (uint i = 0; i<num_attribute; i++){
-			if(!std::getline(state_file,line)){return 0;}
+			if(!std::getline(model_file,line)){return 0;}
 			std::vector<std::string> v_str;
 			splitString(line, ' ', v_str);			
 			if (v_str.size() != num_factor){return 0;}			
@@ -185,7 +185,7 @@ int fm_model::loadState(std::string state_file_path) {
 				v(f,i) = std::atof(v_str[f].c_str());
 			}
 		}
-		state_file.close();
+		model_file.close();
 	}
 	else{ return 0;}
 	return 1;
