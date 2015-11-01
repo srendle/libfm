@@ -133,7 +133,7 @@ double fm_model::predict(sparse_row<FM_FLOAT>& x, DVector<double> &sum, DVector<
  */
 void fm_model::saveModel(std::string model_file_path){
 	std::ofstream out_model;
-	out_model.open(model_file_path);
+	out_model.open(model_file_path.c_str());
 	if (k0) {
 		out_model << "#global bias W0" << std::endl;
 		out_model << w0 << std::endl;
@@ -161,7 +161,7 @@ void fm_model::saveModel(std::string model_file_path){
  */
 int fm_model::loadModel(std::string model_file_path) {
 	std::string line;
-	std::ifstream model_file (model_file_path);
+	std::ifstream model_file (model_file_path.c_str());
 	if (model_file.is_open()){
 		if (k0) {
 			if(!std::getline(model_file,line)){return 0;} // "#global bias W0"
@@ -180,7 +180,7 @@ int fm_model::loadModel(std::string model_file_path) {
 			if(!std::getline(model_file,line)){return 0;}
 			std::vector<std::string> v_str;
 			splitString(line, ' ', v_str);			
-			if (v_str.size() != num_factor){return 0;}			
+			if ((int)v_str.size() != num_factor){return 0;}			
 			for (int f = 0; f < num_factor; f++) {
 				v(f,i) = std::atof(v_str[f].c_str());
 			}
