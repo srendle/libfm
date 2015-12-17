@@ -22,7 +22,6 @@
 #ifndef UTIL_H_
 #define UTIL_H_
 
-#include <math.h>
 #include <vector>
 #include <ctime>
 
@@ -45,6 +44,8 @@ namespace std {
 	bool isinf(float f) { return (! _finite(f)) && (! isnan(f)); }
 }
 #endif
+
+#include <math.h>
 
 double sqr(double d) { return d*d; }
 
