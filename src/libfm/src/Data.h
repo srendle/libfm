@@ -252,10 +252,9 @@ void Data::load(std::string filename) {
 				data.value[row_id].data = &(cache[cache_id]);
 				data.value[row_id].size = 0;
 			
-			  std::count << "Num Features Again " << (this->num_feature) << std::endl;
 				while (sscanf(pline, "%d:%f%n", &_feature, &_value, &nchar) >= 2) {
 					pline += nchar;	
-				  if (_feature == this->num_feature || _feature == (this->num_feature - 1) || _feature == 1 || _feature == 0) {
+				  if (_feature == this->num_feature) {
 				    std::cout << row_id << " Found feature with index" << (this->num_feature) << std::endl;
 				  } 
 				  if (_feature == (this->num_feature - 1)) {
@@ -264,7 +263,7 @@ void Data::load(std::string filename) {
 				  if (_feature == 0) {
 				    std::cout << row_id << " Found feature with index" << (this->num_feature) << std::endl;
 				  } 
-				  if (_feature == 1 {
+				  if (_feature == 1) {
 				    std::cout << row_id << " Found feature with index" << (this->num_feature) << std::endl;
 				  } 
 				  
