@@ -57,19 +57,21 @@ class fm_learn_sgd_element: public fm_learn_sgd {
 				double logloss_validation = evaluate(validation);
 				scores.push_back(logloss_validation);
 				final_num_iter++;
-				bool isStop = true;
 
-				if (scores.size() < num_stop + 2) {
-					scores.push_back(logloss_validation);	
-				} else {
-					for (int j = scores.size() - num_stop; j < scores.size(); j++) {
-						if (scores.at(scores.size() - num_stop - 1) > scores.at(j)) {
-							isStop = false;
+				bool isStop = true;
+				if (early_stop) {
+					if (scores.size() < num_stop + 2) {
+						scores.push_back(logloss_validation);	
+					} else {
+						for (int j = scores.size() - num_stop; j < scores.size(); j++) {
+							if (scores.at(scores.size() - num_stop - 1) > scores.at(j)) {
+								isStop = false;
+							}
 						}
 					}
 				}
 				std::cout << "#Iter=" << std::setw(3) << i << "\tTrain=" << logloss_train << "\tTest=" << logloss_test << "\tValidation=" << logloss_validation << std::endl;
-				if (isStop) {
+				if (early_stop && isStop) {
 					std::cout << "Early Stopping Activated on #iter" << (i - num_stop) << " Final quality: " << logloss_validation << std::endl;
 					break;
 				}
