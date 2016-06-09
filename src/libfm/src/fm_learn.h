@@ -88,6 +88,7 @@ class fm_learn {
 			double progressive_loss = 0.0;
 			for (data.data->begin(); !data.data->end(); data.data->next()) {
 				double p = predict_case(data);
+				p = 1.0/(1.0 + exp(-p));
 				if (data.target(data.data->getRowIndex()) >= 0) {
 					progressive_loss += std::log(p);
 				} else {

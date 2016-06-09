@@ -176,6 +176,7 @@ int main(int argc, char **argv) {
 
 		if (cmdline.getValue(param_verbosity, 0) > 0) {test.debug();}
 
+		std::cout << "Loading validation... \t" << std::endl;
 		Data validation(cmdline.getValue(param_cache_size, 0), true, false);
 
 		validation.load(cmdline.getValue(param_val_file));
@@ -342,7 +343,7 @@ int main(int argc, char **argv) {
 						fmlsgd->learn_rates(1) = lr[1];
 						fmlsgd->learn_rates(2) = lr[2];
 					}		
-					fmlsgd->early_stop = cmdline.getValue(param_early_stop, 1);
+					fmlsgd->early_stop = cmdline.getValue(param_early_stop, false);
 					fmlsgd->num_stop   = cmdline.getValue(param_num_stop, 10);
 			
 
