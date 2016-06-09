@@ -41,12 +41,10 @@ class fm_learn_sgd: public fm_learn {
 		virtual void init() {		
 			fm_learn::init();	
 			learn_rates.setSize(3);
-		//	sum.setSize(fm->num_factor);		
-		//	sum_sqr.setSize(fm->num_factor);
 		}		
 
-		virtual void learn(Data& train, Data& test) { 
-			fm_learn::learn(train, test);
+		virtual void learn(Data& train, Data& test, Data& validation) { 
+			fm_learn::learn(train, test, validation);
 			std::cout << "learnrate=" << learn_rate << std::endl;
 			std::cout << "learnrates=" << learn_rates(0) << "," << learn_rates(1) << "," << learn_rates(2) << std::endl;
 			std::cout << "#iterations=" << num_iter << std::endl;
@@ -70,16 +68,9 @@ class fm_learn_sgd: public fm_learn {
 			assert(data.data->getNumRows() == out.dim);
 			for (data.data->begin(); !data.data->end(); data.data->next()) {
 				double p = predict_case(data);
-				if (task == TASK_REGRESSION ) {
-					p = std::min(max_target, p);
-					p = std::max(min_target, p);
-				} else if (task == TASK_CLASSIFICATION) {
-					p = 1.0/(1.0 + exp(-p));
-				} else {
-					throw "task not supported";
-				}
+				p = 1.0/(1.0 + exp(-p));
 				out(data.data->getRowIndex()) = p;
-			}				
+			}
 		} 
 
 };

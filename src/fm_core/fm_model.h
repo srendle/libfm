@@ -53,6 +53,8 @@ class fm_model {
 		
 		double init_stdev;
 		double init_mean;
+		bool early_stop;
+		int num_stop;
 		
 		fm_model();
 		void debug();
@@ -60,7 +62,6 @@ class fm_model {
 		double predict(sparse_row<FM_FLOAT>& x);
 		double predict(sparse_row<FM_FLOAT>& x, DVector<double> &sum, DVector<double> &sum_sqr);
 		void saveModel(std::string model_file_path);
-		int loadModel(std::string model_file_path);
 	private:
 		void splitString(const std::string& s, char c, std::vector<std::string>& v);
 	
@@ -77,6 +78,8 @@ fm_model::fm_model() {
 	regv = 0.0; 
 	k0 = true;
 	k1 = true;
+	early_stop = true;
+	num_stop = 10;
 }
 
 void fm_model::debug() {
@@ -153,42 +156,6 @@ void fm_model::saveModel(std::string model_file_path){
 		out_model << std::endl;
 	}
 	out_model.close();
-}
-
-/*
- * Read the FM model (all the parameters) from a file.
- * If no valid conversion could be performed, the function std::atof returns zero (0.0).
- */
-int fm_model::loadModel(std::string model_file_path) {
-	std::string line;
-	std::ifstream model_file (model_file_path.c_str());
-	if (model_file.is_open()){
-		if (k0) {
-			if(!std::getline(model_file,line)){return 0;} // "#global bias W0"
-			if(!std::getline(model_file,line)){return 0;}
-			w0 = std::atof(line.c_str());
-		}
-		if (k1) {
-			if(!std::getline(model_file,line)){return 0;} //"#unary interactions Wj"
-			for (uint i = 0; i<num_attribute; i++){
-				if(!std::getline(model_file,line)){return 0;}
-				w(i) = std::atof(line.c_str());
-			}
-		}
-		if(!std::getline(model_file,line)){return 0;}; // "#pairwise interactions Vj,f"
-		for (uint i = 0; i<num_attribute; i++){
-			if(!std::getline(model_file,line)){return 0;}
-			std::vector<std::string> v_str;
-			splitString(line, ' ', v_str);			
-			if ((int)v_str.size() != num_factor){return 0;}			
-			for (int f = 0; f < num_factor; f++) {
-				v(f,i) = std::atof(v_str[f].c_str());
-			}
-		}
-		model_file.close();
-	}
-	else{ return 0;}
-	return 1;
 }
 
 /*
