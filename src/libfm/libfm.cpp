@@ -249,8 +249,6 @@ int main(int argc, char **argv) {
 		{
 			fm.num_attribute = num_all_attribute;
 			fm.init_stdev = cmdline.getValue(param_init_stdev, 0.1);
-			fm.early_stop = cmdline.getValue(param_early_stop, 1);
-			fm.num_stop   = cmdline.getValue(param_num_stop, 10);
 			// set the number of dimensions in the factorization
 			{ 
 				vector<int> dim = cmdline.getIntValues(param_dim);
@@ -344,6 +342,10 @@ int main(int argc, char **argv) {
 						fmlsgd->learn_rates(1) = lr[1];
 						fmlsgd->learn_rates(2) = lr[2];
 					}		
+					fmlsgd->early_stop = cmdline.getValue(param_early_stop, 1);
+					fmlsgd->num_stop   = cmdline.getValue(param_num_stop, 10);
+			
+
 				}
 			}
 		}

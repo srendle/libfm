@@ -39,6 +39,7 @@ class fm_learn_sgd_element: public fm_learn_sgd {
 		virtual void learn(Data& train, Data& test, Data& validation) {
 			fm_learn_sgd::learn(train, test, validation);
 			int final_num_iter = 0;
+			std::vector<double> scores;
 			std::cout << "SGD: DON'T FORGET TO SHUFFLE THE ROWS IN TRAINING DATA TO GET THE BEST RESULTS." << std::endl; 
 			// SGD
 			for (int i = 0; i < num_iter; i++) {
@@ -48,16 +49,32 @@ class fm_learn_sgd_element: public fm_learn_sgd {
 					double mult = 0;
 					mult = -train.target(train.data->getRowIndex())*(1.0-1.0/(1.0+exp(-train.target(train.data->getRowIndex())*p)));				
 					SGD(train.data->getRow(), mult, sum);
-				}			
+				}
+
 				iteration_time = (getusertime() - iteration_time);
 				double logloss_train = evaluate(train);
 				double logloss_test = evaluate(test);
 				double logloss_validation = evaluate(validation);
+				scores.push_back(logloss_validation);
 				final_num_iter++;
+				bool isStop = true;
+
+				if (scores.size() < num_stop + 2) {
+					scores.push_back(logloss_validation);	
+				} else {
+					for (int j = scores.size() - num_stop; j < scores.size(); j++) {
+						if (scores.at(scores.size() - num_stop - 1) > scores.at(j)) {
+							isStop = false;
+						}
+					}
+				}
 				std::cout << "#Iter=" << std::setw(3) << i << "\tTrain=" << logloss_train << "\tTest=" << logloss_test << "\tValidation=" << logloss_validation << std::endl;
-			}		
+				if (isStop) {
+					std::cout << "Early Stopping Activated on #iter" << (i - num_stop) << " Final quality: " << logloss_validation << std::endl;
+					break;
+				}
+			}
 		}
-		
 };
 
 #endif /*FM_LEARN_SGD_ELEMENT_H_*/

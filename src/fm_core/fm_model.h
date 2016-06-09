@@ -53,8 +53,6 @@ class fm_model {
 		
 		double init_stdev;
 		double init_mean;
-		bool early_stop;
-		int num_stop;
 		
 		fm_model();
 		void debug();
@@ -78,8 +76,6 @@ fm_model::fm_model() {
 	regv = 0.0; 
 	k0 = true;
 	k1 = true;
-	early_stop = true;
-	num_stop = 10;
 }
 
 void fm_model::debug() {

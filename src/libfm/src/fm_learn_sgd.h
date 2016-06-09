@@ -37,7 +37,9 @@ class fm_learn_sgd: public fm_learn {
 		int num_iter;
 		double learn_rate;
 		DVector<double> learn_rates;		
-
+		bool early_stop;
+		int num_stop;
+		
 		virtual void init() {		
 			fm_learn::init();	
 			learn_rates.setSize(3);
