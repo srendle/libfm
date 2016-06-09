@@ -62,6 +62,7 @@ class fm_learn_sgd_element: public fm_learn_sgd {
 				if (early_stop) {
 					if (scores.size() < num_stop + 2) {
 						scores.push_back(logloss_validation);	
+						isStop = false;
 					} else {
 						for (uint j = scores.size() - num_stop; j < scores.size(); j++) {
 							if (scores.at(scores.size() - num_stop - 1) > scores.at(j)) {
