@@ -8,6 +8,7 @@ Changes:
 * Implemented early stopping of fm model
 * Validation data is MANDATORY for this verions
 * Removed handling of Meta 
+* Removed regression task
 
 Additional parameters:
 * early stopping (bool) -- enabling early stopping

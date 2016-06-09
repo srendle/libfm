@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
 			return 0;
 		}
 
-		if (! cmdline.getValue(param_method).compare("sgd")) {
+		if (cmdline.getValue(param_method).compare("sgd") != 0) {
 			std::cout << "Wrong Optimization Method." << std::endl;
 			return 0;
 		}
@@ -126,7 +126,7 @@ int main(int argc, char **argv) {
 			std::cout << "Model Loading is not supported" << std::endl;
 			return 0;
 		}
-		if (! cmdline.getValue("task").compare("c") ) {
+		if (cmdline.getValue("task").compare("c") != 0) {
 			std::cout << "Supported only classification task" << std::endl;
 			return 0;
 		}
@@ -158,13 +158,13 @@ int main(int argc, char **argv) {
 
 		// (1) Load the data
 		std::cout << "Loading train...\t" << std::endl;
-		Data train(cmdline.getValue(param_cache_size, 0), false, false);
+		Data train(cmdline.getValue(param_cache_size, 0), true, false);
 
 		train.load(cmdline.getValue(param_train_file));
 		if (cmdline.getValue(param_verbosity, 0) > 0) { train.debug(); }
 
 		std::cout << "Loading test... \t" << std::endl;
-		Data test(cmdline.getValue(param_cache_size, 0), false, false); 
+		Data test(cmdline.getValue(param_cache_size, 0), true, false); 
 		
 		test.load(cmdline.getValue(param_test_file));
 
@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
 			return 0;
 		}
 
-		Data validation(cmdline.getValue(param_cache_size, 0), false, false);
+		Data validation(cmdline.getValue(param_cache_size, 0), true, false);
 
 		validation.load(cmdline.getValue(param_val_file));
 
@@ -192,7 +192,7 @@ int main(int argc, char **argv) {
 			test.relation.setSize(rel.size());
 			validation.relation.setSize(rel.size());
 			for (uint i = 0; i < rel.size(); i++) {
-				relation(i) = new RelationData(cmdline.getValue(param_cache_size, 0), false, false);
+				relation(i) = new RelationData(cmdline.getValue(param_cache_size, 0), true, false);
 				relation(i)->load(rel[i]);
 				train.relation(i).data = relation(i);
 				test.relation(i).data = relation(i);
