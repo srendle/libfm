@@ -156,6 +156,12 @@ int main(int argc, char **argv) {
 			cmdline.setValue(param_do_multilevel, "0"); 
 		}
 
+		if (! cmdline.hasParameter(param_val_file)) {
+			std::cout << "Validation data is [MANDATORY]" << std::endl;
+			std::cout << "No data for early stopping." << std::endl;
+			return 0;
+		}
+
 		// (1) Load the data
 		std::cout << "Loading train...\t" << std::endl;
 		Data train(cmdline.getValue(param_cache_size, 0), true, false);
@@ -169,12 +175,6 @@ int main(int argc, char **argv) {
 		test.load(cmdline.getValue(param_test_file));
 
 		if (cmdline.getValue(param_verbosity, 0) > 0) {test.debug();}
-
-		if (! cmdline.hasParameter(param_val_file)) {
-			std::cout << "Validation data is [MANDATORY]" << std::endl;
-			std::cout << "No data for early stopping." << std::endl;
-			return 0;
-		}
 
 		Data validation(cmdline.getValue(param_cache_size, 0), true, false);
 
