@@ -95,7 +95,7 @@ class fm_learn {
 					progressive_loss += std::log(1 - p);
 				}
 			}
-			return progressive_loss / (double) data.data->getNumRows();
+			return -1 * progressive_loss / (double) data.data->getNumRows();
 		}
 };
 
