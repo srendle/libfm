@@ -40,6 +40,7 @@ class fm_model {
 		double w0;
 		DVectorDouble w;
 		DMatrixDouble v;
+		fm_state *state;
 
 	public:
 		// the following values should be set:
@@ -135,18 +136,18 @@ void fm_model::saveModel(std::string model_file_path){
 	out_model.open(model_file_path.c_str());
 	if (k0) {
 		out_model << "#global bias W0" << std::endl;
-		out_model << w0 << std::endl;
+		out_model << fm_state->w0 << std::endl;
 	}
 	if (k1) {
 		out_model << "#unary interactions Wj" << std::endl;
 		for (uint i = 0; i<num_attribute; i++){
-			out_model <<	w(i) << std::endl;
+			out_model <<	fm_state->w(i) << std::endl;
 		}
 	}
 	out_model << "#pairwise interactions Vj,f" << std::endl;
 	for (uint i = 0; i<num_attribute; i++){
 		for (int f = 0; f < num_factor; f++) {
-			out_model << v(f,i);
+			out_model << fm_state->v(f,i);
 			if (f!=num_factor-1){ out_model << ' '; }
 		}
 		out_model << std::endl;

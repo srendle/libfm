@@ -39,7 +39,9 @@ class fm_learn_sgd_element: public fm_learn_sgd {
 		virtual void learn(Data& train, Data& test, Data& validation) {
 			fm_learn_sgd::learn(train, test, validation);
 			int final_num_iter = 0;
-			std::vector<double> scores;
+			std::deque<double> scores;
+			std::deque<*fm_state> states;
+
 			std::cout << "SGD: DON'T FORGET TO SHUFFLE THE ROWS IN TRAINING DATA TO GET THE BEST RESULTS." << std::endl; 
 			// SGD
 			for (int i = 0; i < num_iter; i++) {
@@ -55,24 +57,31 @@ class fm_learn_sgd_element: public fm_learn_sgd {
 				double logloss_train = evaluate(train);
 				double logloss_test = evaluate(test);
 				double logloss_validation = evaluate(validation);
-				scores.push_back(logloss_validation);
+
 				final_num_iter++;
 
 				bool isStop = true;
 				if (early_stop) {
 					if (scores.size() < num_stop + 2) {
 						scores.push_back(logloss_validation);	
+						states.push_back(new fm_state(w, w0, v));
 						isStop = false;
 					} else {
-						for (uint j = scores.size() - num_stop; j < scores.size(); j++) {
-							if (scores.at(scores.size() - num_stop - 1) > scores.at(j)) {
+  						for (std::deque<int>::iterator it = scores.begin(); it != scores.end(); ++it) {
+							if (logloss_validation > *it) {
 								isStop = false;
 							}
 						}
+						scores.push_back(logloss_validation);	
+						scores.pop_front();
+
+						states.push_back(new fm_state(w, w0, v));
+						states.pop_front();
 					}
 				}
 				std::cout << "#Iter=" << std::setw(3) << i << "\tTrain=" << logloss_train << "\tTest=" << logloss_test << "\tValidation=" << logloss_validation << std::endl;
 				if (early_stop && isStop) {
+					this->state = states.pop_front();
 					std::cout << "Early Stopping Activated on #iter" << (i - num_stop) << " Final quality: " << logloss_validation << std::endl;
 					break;
 				}
