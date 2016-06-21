@@ -1,3 +1,22 @@
+libFM with Early Stopping
+=========================
+
+Changes:
+
+* Removed mcmc and sgda optimization methods
+* Added validation data as mandatory parameter
+* Implemented early stopping of fm model
+* Validation data is MANDATORY for this verions
+* Removed handling of Meta 
+* Removed regression task
+
+Additional parameters:
+* early stopping (bool) -- enabling early stopping
+* num iterations for early stopping (int) -- how many iterations till break
+
+
+
+
 libFM
 =====
 

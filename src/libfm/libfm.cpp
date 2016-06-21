@@ -53,8 +53,6 @@
 #include "src/fm_learn.h"
 #include "src/fm_learn_sgd.h"
 #include "src/fm_learn_sgd_element.h"
-#include "src/fm_learn_sgd_element_adapt_reg.h"
-#include "src/fm_learn_mcmc_simultaneous.h"
 
 
 using namespace std;
@@ -74,19 +72,19 @@ int main(int argc, char **argv) {
 		std::cout << "----------------------------------------------------------------------------" << std::endl;
 		
 		const std::string param_task		= cmdline.registerParameter("task", "r=regression, c=binary classification [MANDATORY]");
-		const std::string param_meta_file	= cmdline.registerParameter("meta", "filename for meta information about data set");
+		const std::string param_meta_file	= cmdline.registerParameter("meta", "filename for meta information about data set [DISABLED]");
 		const std::string param_train_file	= cmdline.registerParameter("train", "filename for training data [MANDATORY]");
 		const std::string param_test_file	= cmdline.registerParameter("test", "filename for test data [MANDATORY]");
-		const std::string param_val_file	= cmdline.registerParameter("validation", "filename for validation data (only for SGDA)");
+		const std::string param_val_file	= cmdline.registerParameter("validation", "filename for validation data [MANDATORY]");
 		const std::string param_out		= cmdline.registerParameter("out", "filename for output");
 
 		const std::string param_dim		= cmdline.registerParameter("dim", "'k0,k1,k2': k0=use bias, k1=use 1-way interactions, k2=dim of 2-way interactions; default=1,1,8");
 		const std::string param_regular		= cmdline.registerParameter("regular", "'r0,r1,r2' for SGD and ALS: r0=bias regularization, r1=1-way regularization, r2=2-way regularization");
-		const std::string param_init_stdev	= cmdline.registerParameter("init_stdev", "stdev for initialization of 2-way factors; default=0.1");
-		const std::string param_num_iter	= cmdline.registerParameter("iter", "number of iterations; default=100");
-		const std::string param_learn_rate	= cmdline.registerParameter("learn_rate", "learn_rate for SGD; default=0.1");
+		const std::string param_init_stdev	= cmdline.registerParameter("init_stdev", "stdev for initialization of 2-way factors; default=0.003");
+		const std::string param_num_iter	= cmdline.registerParameter("iter", "number of iterations; default=40");
+		const std::string param_learn_rate	= cmdline.registerParameter("learn_rate", "learn_rate for SGD; default=0.001");
 
-		const std::string param_method		= cmdline.registerParameter("method", "learning method (SGD, SGDA, ALS, MCMC); default=MCMC");
+		const std::string param_method		= cmdline.registerParameter("method", "learning method SGD; default=SGD");
 
 		const std::string param_verbosity	= cmdline.registerParameter("verbosity", "how much infos to print; default=0");
 		const std::string param_r_log		= cmdline.registerParameter("rlog", "write measurements within iterations to a file; default=''");
@@ -101,6 +99,9 @@ int main(int argc, char **argv) {
 		const std::string param_save_model 	= cmdline.registerParameter("save_model", "filename for writing the FM model");
 		const std::string param_load_model 	= cmdline.registerParameter("load_model", "filename for reading the FM model");
 
+		const std::string param_early_stop  = cmdline.registerParameter("early_stop", "is early stopping enabled. Default: enabled.");
+		const std::string param_num_stop    = cmdline.registerParameter("num_stop", "number of rounds to check for early stop. Default: 10.");
+
 		const std::string param_do_sampling	= "do_sampling";
 		const std::string param_do_multilevel	= "do_multilevel";
 		const std::string param_num_eval_cases  = "num_eval_cases";
@@ -111,57 +112,78 @@ int main(int argc, char **argv) {
 		}
 		cmdline.checkParameters();
 		
+		if (cmdline.hasParameter(param_meta_file)) {
+			std::cout << "Loading external meta info is not supported" << std::endl;
+			return 0;
+		}
+
+		if (cmdline.getValue(param_method).compare("sgd") != 0) {
+			std::cout << "Wrong Optimization Method." << std::endl;
+			return 0;
+		}
+
+		if (cmdline.hasParameter(param_load_model)) {
+			std::cout << "Model Loading is not supported" << std::endl;
+			return 0;
+		}
+		if (cmdline.getValue("task").compare("c") != 0) {
+			std::cout << "Supported only classification task" << std::endl;
+			return 0;
+		}
+
 		// Seed
 		long int seed = cmdline.getValue(param_seed, time(NULL));
 		srand ( seed );
 
-		if (! cmdline.hasParameter(param_method)) { cmdline.setValue(param_method, "mcmc"); }
-		if (! cmdline.hasParameter(param_init_stdev)) { cmdline.setValue(param_init_stdev, "0.1"); }
-		if (! cmdline.hasParameter(param_dim)) { cmdline.setValue(param_dim, "1,1,8"); }
+		if (! cmdline.hasParameter(param_method)) { 
+			cmdline.setValue(param_method, "sgd");
+			std::cout << "No Optimization method was found in settings. Default: sgd." << std::endl;
+		}
+		if (! cmdline.hasParameter(param_init_stdev)) { 
+			cmdline.setValue(param_init_stdev, "0.0003");
+			std::cout << "No Initial Standard deviation pool. Default: 0.001.";
+		}
+		if (! cmdline.hasParameter(param_dim)) { 
+			cmdline.setValue(param_dim, "1,1,8"); 
+			std::cout << "No Initial Dimensions. Default 1,1,8.";
+		}
 
-		if (! cmdline.getValue(param_method).compare("als")) { // als is an mcmc without sampling and hyperparameter inference
-			cmdline.setValue(param_method, "mcmc");
-			if (! cmdline.hasParameter(param_do_sampling)) { cmdline.setValue(param_do_sampling, "0"); }
-			if (! cmdline.hasParameter(param_do_multilevel)) { cmdline.setValue(param_do_multilevel, "0"); }
-		} 
+		if (! cmdline.hasParameter(param_do_sampling)) { 
+			cmdline.setValue(param_do_sampling, "0"); 
+		}
+		
+		if (! cmdline.hasParameter(param_do_multilevel)) { 
+			cmdline.setValue(param_do_multilevel, "0"); 
+		}
+
+		if (! cmdline.hasParameter(param_val_file)) {
+			std::cout << "Validation data is [MANDATORY]" << std::endl;
+			std::cout << "No data for early stopping." << std::endl;
+			return 0;
+		}
 
 		// (1) Load the data
 		std::cout << "Loading train...\t" << std::endl;
-		Data train(
-			cmdline.getValue(param_cache_size, 0),
-			! (!cmdline.getValue(param_method).compare("mcmc")), // no original data for mcmc
-			! (!cmdline.getValue(param_method).compare("sgd") || !cmdline.getValue(param_method).compare("sgda")) // no transpose data for sgd, sgda
-		);
+		Data train(cmdline.getValue(param_cache_size, 0), true, false);
+
 		train.load(cmdline.getValue(param_train_file));
 		if (cmdline.getValue(param_verbosity, 0) > 0) { train.debug(); }
 
 		std::cout << "Loading test... \t" << std::endl;
-		Data test(
-			cmdline.getValue(param_cache_size, 0),
-			! (!cmdline.getValue(param_method).compare("mcmc")), // no original data for mcmc
-			! (!cmdline.getValue(param_method).compare("sgd") || !cmdline.getValue(param_method).compare("sgda")) // no transpose data for sgd, sgda
-		);
+		Data test(cmdline.getValue(param_cache_size, 0), true, false); 
+		
 		test.load(cmdline.getValue(param_test_file));
-		if (cmdline.getValue(param_verbosity, 0) > 0) { test.debug(); }
 
-		Data* validation = NULL;
-		if (cmdline.hasParameter(param_val_file)) {
-			if (cmdline.getValue(param_method).compare("sgda")) {
-				std::cout << "WARNING: Validation data is only used for SGDA. The data is ignored." << std::endl;
-			} else {
-				std::cout << "Loading validation set...\t" << std::endl;
-				validation = new Data(
-					cmdline.getValue(param_cache_size, 0),
-					! (!cmdline.getValue(param_method).compare("mcmc")), // no original data for mcmc
-					! (!cmdline.getValue(param_method).compare("sgd") || !cmdline.getValue(param_method).compare("sgda")) // no transpose data for sgd, sgda
-				);
-				validation->load(cmdline.getValue(param_val_file));
-				if (cmdline.getValue(param_verbosity, 0) > 0) { validation->debug(); }
-			}
-		}
+		if (cmdline.getValue(param_verbosity, 0) > 0) {test.debug();}
+
+		std::cout << "Loading validation... \t" << std::endl;
+		Data validation(cmdline.getValue(param_cache_size, 0), true, false);
+
+		validation.load(cmdline.getValue(param_val_file));
+
+		if (cmdline.getValue(param_verbosity, 0) > 0) {validation.debug();}
 
 		DVector<RelationData*> relation;
-		// (1.2) Load relational data
 		{
 			vector<std::string> rel = cmdline.getStrValues(param_relation);
 		
@@ -169,17 +191,16 @@ int main(int argc, char **argv) {
 			relation.setSize(rel.size());
 			train.relation.setSize(rel.size());
 			test.relation.setSize(rel.size());
+			validation.relation.setSize(rel.size());
 			for (uint i = 0; i < rel.size(); i++) {
-				 relation(i) = new RelationData(
-					cmdline.getValue(param_cache_size, 0),
-					! (!cmdline.getValue(param_method).compare("mcmc")), // no original data for mcmc
-					! (!cmdline.getValue(param_method).compare("sgd") || !cmdline.getValue(param_method).compare("sgda")) // no transpose data for sgd, sgda
-				);
+				relation(i) = new RelationData(cmdline.getValue(param_cache_size, 0), true, false);
 				relation(i)->load(rel[i]);
 				train.relation(i).data = relation(i);
 				test.relation(i).data = relation(i);
+				validation.relation(i).data = relation(i);
 				train.relation(i).load(rel[i] + ".train", train.num_cases);
 				test.relation(i).load(rel[i] + ".test", test.num_cases);
+				validation.relation(i).load(rel[i] + ".validation", validation.num_cases);
 			}
 		}
 		
@@ -187,21 +208,16 @@ int main(int argc, char **argv) {
 		std::cout << "Loading meta data...\t" << std::endl;
 		
 		// (main table)
-		uint num_all_attribute = std::max(train.num_feature, test.num_feature);
-		if (validation != NULL) {
-			num_all_attribute = std::max(num_all_attribute, (uint) validation->num_feature);
-		}
-		DataMetaInfo meta_main(num_all_attribute);
-		if (cmdline.hasParameter(param_meta_file)) {
-			meta_main.loadGroupsFromFile(cmdline.getValue(param_meta_file));
-		}
+		uint num_all_attribute = std::max(std::max(train.num_feature, test.num_feature), validation.num_feature);
 		
 		// build the joined meta table
 		for (uint r = 0; r < train.relation.dim; r++) {
 			train.relation(r).data->attr_offset = num_all_attribute;
 			num_all_attribute += train.relation(r).data->num_feature;
 		}
+		DataMetaInfo meta_main(num_all_attribute);
 		DataMetaInfo meta(num_all_attribute);
+		
 		{
 			meta.num_attr_groups = meta_main.num_attr_groups;
 			for (uint r = 0; r < relation.dim; r++) {
@@ -246,59 +262,35 @@ int main(int argc, char **argv) {
 			
 		}
 		
-		// (2.1) load the FM model
-		if (cmdline.hasParameter(param_load_model)) {
-			std::cout << "Reading FM model... \t" << std::endl;
-			if (cmdline.getValue(param_method).compare("sgd") || cmdline.getValue(param_method).compare("als")){ //load/save enabled only for SGD and ALS
-				if(!fm.loadModel(cmdline.getValue(param_load_model))){
-					std::cout << "WARNING: malformed model file. Nothing will be loaded." << std::endl;
-					fm.init();
-				}
-			}
-			else{
-				std::cout << "WARNING: load/save enabled only for SGD and ALS. Nothing will be loaded." << std::endl;
-			}
-		}
-
 		// (3) Setup the learning method:
-		fm_learn* fml;
-		if (! cmdline.getValue(param_method).compare("sgd")) {
-	 		fml = new fm_learn_sgd_element();
-			((fm_learn_sgd*)fml)->num_iter = cmdline.getValue(param_num_iter, 100);
+		fm_learn* fml = new fm_learn_sgd_element();
+		((fm_learn_sgd*)fml)->num_iter = cmdline.getValue(param_num_iter, 100);
 
-		} else if (! cmdline.getValue(param_method).compare("sgda")) {
-			assert(validation != NULL);		
-	 		fml = new fm_learn_sgd_element_adapt_reg();
-			((fm_learn_sgd*)fml)->num_iter = cmdline.getValue(param_num_iter, 100);
-			((fm_learn_sgd_element_adapt_reg*)fml)->validation = validation;
-
-		} else if (! cmdline.getValue(param_method).compare("mcmc")) {
-			fm.w.init_normal(fm.init_mean, fm.init_stdev);
-	 		fml = new fm_learn_mcmc_simultaneous();
-			fml->validation = validation;
-			((fm_learn_mcmc*)fml)->num_iter = cmdline.getValue(param_num_iter, 100);
-			((fm_learn_mcmc*)fml)->num_eval_cases = cmdline.getValue(param_num_eval_cases, test.num_cases);
-		
-			((fm_learn_mcmc*)fml)->do_sample = cmdline.getValue(param_do_sampling, true);
-			((fm_learn_mcmc*)fml)->do_multilevel = cmdline.getValue(param_do_multilevel, true);
-		} else {
-			throw "unknown method";
-		}
 		fml->fm = &fm;
 		fml->max_target = train.max_target;
 		fml->min_target = train.min_target;
 		fml->meta = &meta;
-		if (! cmdline.getValue("task").compare("r") ) {
-			fml->task = 0;
-		} else if (! cmdline.getValue("task").compare("c") ) {
-			fml->task = 1;
-			for (uint i = 0; i < train.target.dim; i++) { if (train.target(i) <= 0.0) { train.target(i) = -1.0; } else {train.target(i) = 1.0; } }
-			for (uint i = 0; i < test.target.dim; i++) { if (test.target(i) <= 0.0) { test.target(i) = -1.0; } else {test.target(i) = 1.0; } }
-			if (validation != NULL) {
-				for (uint i = 0; i < validation->target.dim; i++) { if (validation->target(i) <= 0.0) { validation->target(i) = -1.0; } else {validation->target(i) = 1.0; } }
+		fml->task = 1;
+		for (uint i = 0; i < train.target.dim; i++) { 
+			if (train.target(i) <= 0.0) { 
+				train.target(i) = -1.0; 
+			} else {
+				train.target(i) = 1.0; 
 			}
-		} else {
-			throw "unknown task";
+		}
+		for (uint i = 0; i < test.target.dim; i++) {
+			if (test.target(i) <= 0.0) { 
+				test.target(i) = -1.0; 
+			} else {
+				test.target(i) = 1.0; 
+			}
+		}
+		for (uint i = 0; i < validation.target.dim; i++) {
+			if (validation.target(i) <= 0.0) { 
+				validation.target(i) = -1.0;
+			} else {
+				validation.target(i) = 1.0; 
+			}
 		}
 		
 		// (4) init the logging
@@ -316,69 +308,27 @@ int main(int argc, char **argv) {
 	 	
 		fml->log = rlog;
 		fml->init();
-		if (! cmdline.getValue(param_method).compare("mcmc")) {
-			// set the regularization; for als and mcmc this can be individual per group
-			{ 
-	 			vector<double> reg = cmdline.getDblValues(param_regular);
-				assert((reg.size() == 0) || (reg.size() == 1) || (reg.size() == 3) || (reg.size() == (1+meta.num_attr_groups*2)));
-				if (reg.size() == 0) {
-					fm.reg0 = 0.0;
-					fm.regw = 0.0;
-					fm.regv = 0.0;
-					((fm_learn_mcmc*)fml)->w_lambda.init(fm.regw);
-					((fm_learn_mcmc*)fml)->v_lambda.init(fm.regv);
-				} else if (reg.size() == 1) {
-					fm.reg0 = reg[0];
-					fm.regw = reg[0];
-					fm.regv = reg[0];
-					((fm_learn_mcmc*)fml)->w_lambda.init(fm.regw);
-					((fm_learn_mcmc*)fml)->v_lambda.init(fm.regv);					
-				} else if (reg.size() == 3) {
-					fm.reg0 = reg[0];
-					fm.regw = reg[1];
-					fm.regv = reg[2];
-					((fm_learn_mcmc*)fml)->w_lambda.init(fm.regw);
-					((fm_learn_mcmc*)fml)->v_lambda.init(fm.regv);
-				} else {
-					fm.reg0 = reg[0];
-					fm.regw = 0.0;
-					fm.regv = 0.0;
-					int j = 1;
-					for (uint g = 0; g < meta.num_attr_groups; g++) {
-						((fm_learn_mcmc*)fml)->w_lambda(g) = reg[j];
-						j++;
-					}
-					for (uint g = 0; g < meta.num_attr_groups; g++) {
-						for (int f = 0; f < fm.num_factor; f++) {
-							((fm_learn_mcmc*)fml)->v_lambda(g,f) = reg[j];
-						}
- 						j++;
-					}
-				}
-
-			}
-		} else {
-			// set the regularization; for standard SGD, groups are not supported
-			{ 
-	 			vector<double> reg = cmdline.getDblValues(param_regular);
-				assert((reg.size() == 0) || (reg.size() == 1) || (reg.size() == 3));
-				if (reg.size() == 0) {
-					fm.reg0 = 0.0;
-					fm.regw = 0.0;
-					fm.regv = 0.0;
-				} else if (reg.size() == 1) {
-					fm.reg0 = reg[0];
-					fm.regw = reg[0];
-					fm.regv = reg[0];
-				} else {
-					fm.reg0 = reg[0];
-					fm.regw = reg[1];
-					fm.regv = reg[2];
-				}		
-			}
-		}
+		// set the regularization; for standard SGD, groups are not supported
 		{
-			fm_learn_sgd* fmlsgd= dynamic_cast<fm_learn_sgd*>(fml); 
+			vector<double> reg = cmdline.getDblValues(param_regular);
+			assert((reg.size() == 0) || (reg.size() == 1) || (reg.size() == 3));
+			if (reg.size() == 0) {
+				fm.reg0 = 0.0;
+				fm.regw = 0.0;
+				fm.regv = 0.0;
+			} else if (reg.size() == 1) {
+				fm.reg0 = reg[0];
+				fm.regw = reg[0];
+				fm.regv = reg[0];
+			} else {
+				fm.reg0 = reg[0];
+				fm.regw = reg[1];
+				fm.regv = reg[2];
+			}		
+		}
+
+		{
+			fm_learn_sgd* fmlsgd = dynamic_cast<fm_learn_sgd*>(fml); 
 			if (fmlsgd) {
 				// set the learning rates (individual per layer)
 				{ 
@@ -393,9 +343,14 @@ int main(int argc, char **argv) {
 						fmlsgd->learn_rates(1) = lr[1];
 						fmlsgd->learn_rates(2) = lr[2];
 					}		
+					fmlsgd->early_stop = cmdline.getValue(param_early_stop, false);
+					fmlsgd->num_stop   = cmdline.getValue(param_num_stop, 10);
+			
+
 				}
 			}
 		}
+
 		if (rlog != NULL) {
 			rlog->init();
 		}
@@ -406,12 +361,7 @@ int main(int argc, char **argv) {
 		}	
 
 		// () learn		
-		fml->learn(train, test);
-
-		// () Prediction at the end  (not for mcmc and als)
-		if (cmdline.getValue(param_method).compare("mcmc")) {
-			std::cout << "Final\t" << "Train=" << fml->evaluate(train) << "\tTest=" << fml->evaluate(test) << std::endl;	
-		}
+		fml->learn(train, test, validation);
 
 		// () Save prediction
 		if (cmdline.hasParameter(param_out)) {
@@ -424,14 +374,9 @@ int main(int argc, char **argv) {
 		// () save the FM model
 		if (cmdline.hasParameter(param_save_model)) {
 			std::cout << "Writing FM model... \t" << std::endl;
-			if (cmdline.getValue(param_method).compare("sgd") || cmdline.getValue(param_method).compare("als")){ //load/save enabled only for SGD and ALS
-				fm.saveModel(cmdline.getValue(param_save_model));
-			}
-			else{
-				std::cout << "WARNING: load/save enabled only for SGD and ALS. Nothing will be saved." << std::endl;
-			}
+			fm.saveModel(cmdline.getValue(param_save_model));
+			std::cout << "NOTIFICATION: model saved. Model load is DISABLED." << std::endl;
 		}
-				 	
 
 	} catch (std::string &e) {
 		std::cerr << std::endl << "ERROR: " << e << std::endl;
