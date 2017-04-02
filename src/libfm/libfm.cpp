@@ -249,7 +249,7 @@ int main(int argc, char **argv) {
 		// (2.1) load the FM model
 		if (cmdline.hasParameter(param_load_model)) {
 			std::cout << "Reading FM model... \t" << std::endl;
-			if (cmdline.getValue(param_method).compare("sgd") || cmdline.getValue(param_method).compare("als")){ //load/save enabled only for SGD and ALS
+			if (!cmdline.getValue(param_method).compare("sgd") || !cmdline.getValue(param_method).compare("als")){ //load/save enabled only for SGD and ALS
 				if(!fm.loadModel(cmdline.getValue(param_load_model))){
 					std::cout << "WARNING: malformed model file. Nothing will be loaded." << std::endl;
 					fm.init();
@@ -424,7 +424,7 @@ int main(int argc, char **argv) {
 		// () save the FM model
 		if (cmdline.hasParameter(param_save_model)) {
 			std::cout << "Writing FM model... \t" << std::endl;
-			if (cmdline.getValue(param_method).compare("sgd") || cmdline.getValue(param_method).compare("als")){ //load/save enabled only for SGD and ALS
+			if (!cmdline.getValue(param_method).compare("sgd") || !cmdline.getValue(param_method).compare("als")){ //load/save enabled only for SGD and ALS
 				fm.saveModel(cmdline.getValue(param_save_model));
 			}
 			else{
