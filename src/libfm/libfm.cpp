@@ -119,10 +119,11 @@ int main(int argc, char **argv) {
 		if (! cmdline.hasParameter(param_init_stdev)) { cmdline.setValue(param_init_stdev, "0.1"); }
 		if (! cmdline.hasParameter(param_dim)) { cmdline.setValue(param_dim, "1,1,8"); }
 
-		if (cmdline.hasParameter(param_save_model) && !cmdline.getValue(param_method).compare("mcmc")) {
-			std::cout << "**WARNING**: load/save enabled only for SGD and ALS. Nothing will be saved." << std::endl;
-			cmdline.setValue(param_save_model, "FALSE_MCMC_SAVE");
-		}
+        if (! cmdline.getValue(param_method).compare("mcmc") && cmdline.hasParameter(param_save_model)) {
+			std::cout << "WARNING: -save_model enabled only for SGD and ALS." << std::endl;
+            cmdline.removeParameter(param_save_model);
+            return 0;
+        }
 
 		if (! cmdline.getValue(param_method).compare("als")) { // als is an mcmc without sampling and hyperparameter inference
 			cmdline.setValue(param_method, "mcmc");
@@ -427,7 +428,7 @@ int main(int argc, char **argv) {
 		}
 		
 		// () save the FM model
-		if (cmdline.hasParameter("save_model") && cmdline.getValue(param_save_model).compare("FALSE_MCMC_SAVE")) {
+		if (cmdline.hasParameter(param_save_model)) {
 			std::cout << "Writing FM model to "<< cmdline.getValue(param_save_model) << std::endl;
 			fm.saveModel(cmdline.getValue(param_save_model));
 		}
