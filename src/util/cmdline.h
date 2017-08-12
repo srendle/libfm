@@ -81,6 +81,11 @@ class CMDLine {
 			return (value.find(parameter) != value.end());
 		}
 
+		void removeParameter(const std::string& parameter) {
+			if (hasParameter(parameter)) {
+				value.erase(parameter);
+			}
+		}
 		
 		void print_help() {
 			for (std::map< std::string, std::string >::const_iterator pv = help.begin(); pv != help.end(); ++pv) {
@@ -109,7 +114,7 @@ class CMDLine {
 			this->help[parameter] = help;
 			return parameter;
 		}
-
+        
 		void checkParameters() {
 			// make sure there is no parameter specified on the cmdline that is not registered:
 			for (std::map< std::string, std::string >::const_iterator pv = value.begin(); pv != value.end(); ++pv) {

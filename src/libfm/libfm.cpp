@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
 		const std::string param_r_log		= cmdline.registerParameter("rlog", "write measurements within iterations to a file; default=''");
 		const std::string param_seed		= cmdline.registerParameter("seed", "integer value, default=None");
 
-		const std::string param_help            = cmdline.registerParameter("help", "this screen");
+		const std::string param_help	    	= cmdline.registerParameter("help", "this screen");
 
 		const std::string param_relation	= cmdline.registerParameter("relation", "BS: filenames for the relations, default=''");
 
@@ -118,6 +118,12 @@ int main(int argc, char **argv) {
 		if (! cmdline.hasParameter(param_method)) { cmdline.setValue(param_method, "mcmc"); }
 		if (! cmdline.hasParameter(param_init_stdev)) { cmdline.setValue(param_init_stdev, "0.1"); }
 		if (! cmdline.hasParameter(param_dim)) { cmdline.setValue(param_dim, "1,1,8"); }
+
+        if (! cmdline.getValue(param_method).compare("mcmc") && cmdline.hasParameter(param_save_model)) {
+			std::cout << "WARNING: -save_model enabled only for SGD and ALS." << std::endl;
+            cmdline.removeParameter(param_save_model);
+            return 0;
+        }
 
 		if (! cmdline.getValue(param_method).compare("als")) { // als is an mcmc without sampling and hyperparameter inference
 			cmdline.setValue(param_method, "mcmc");
@@ -423,13 +429,8 @@ int main(int argc, char **argv) {
 		
 		// () save the FM model
 		if (cmdline.hasParameter(param_save_model)) {
-			std::cout << "Writing FM model... \t" << std::endl;
-			if (!cmdline.getValue(param_method).compare("sgd") || !cmdline.getValue(param_method).compare("als")){ //load/save enabled only for SGD and ALS
-				fm.saveModel(cmdline.getValue(param_save_model));
-			}
-			else{
-				std::cout << "WARNING: load/save enabled only for SGD and ALS. Nothing will be saved." << std::endl;
-			}
+			std::cout << "Writing FM model to "<< cmdline.getValue(param_save_model) << std::endl;
+			fm.saveModel(cmdline.getValue(param_save_model));
 		}
 				 	
 
