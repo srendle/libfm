@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
 		CMDLine cmdline(argc, argv);
 		std::cout << "----------------------------------------------------------------------------" << std::endl;
 		std::cout << "libFM" << std::endl;
-		std::cout << "  Version: 1.4.2" << std::endl;
+		std::cout << "  Version: 1.4.4" << std::endl;
 		std::cout << "  Author:  Steffen Rendle, srendle@libfm.org" << std::endl;
 		std::cout << "  WWW:     http://www.libfm.org/" << std::endl;
 		std::cout << "This program comes with ABSOLUTELY NO WARRANTY; for details see license.txt." << std::endl;
@@ -119,11 +119,18 @@ int main(int argc, char **argv) {
 		if (! cmdline.hasParameter(param_init_stdev)) { cmdline.setValue(param_init_stdev, "0.1"); }
 		if (! cmdline.hasParameter(param_dim)) { cmdline.setValue(param_dim, "1,1,8"); }
 
-        if (! cmdline.getValue(param_method).compare("mcmc") && cmdline.hasParameter(param_save_model)) {
+		// Check for invalid flags.
+ 		if (! cmdline.getValue(param_method).compare("mcmc") && cmdline.hasParameter(param_save_model)) {
 			std::cout << "WARNING: -save_model enabled only for SGD and ALS." << std::endl;
-            cmdline.removeParameter(param_save_model);
-            return 0;
-        }
+ 			cmdline.removeParameter(param_save_model);
+ 			return 0;
+ 		}
+
+ 		if (! cmdline.getValue(param_method).compare("mcmc") && cmdline.hasParameter(param_load_model)) {
+			std::cout << "WARNING: -load_model enabled only for SGD and ALS." << std::endl;
+ 			cmdline.removeParameter(param_load_model);
+ 			return 0;
+		}
 
 		if (! cmdline.getValue(param_method).compare("als")) { // als is an mcmc without sampling and hyperparameter inference
 			cmdline.setValue(param_method, "mcmc");
@@ -255,14 +262,9 @@ int main(int argc, char **argv) {
 		// (2.1) load the FM model
 		if (cmdline.hasParameter(param_load_model)) {
 			std::cout << "Reading FM model... \t" << std::endl;
-			if (!cmdline.getValue(param_method).compare("sgd") || !cmdline.getValue(param_method).compare("als")){ //load/save enabled only for SGD and ALS
-				if(!fm.loadModel(cmdline.getValue(param_load_model))){
-					std::cout << "WARNING: malformed model file. Nothing will be loaded." << std::endl;
-					fm.init();
-				}
-			}
-			else{
-				std::cout << "WARNING: load/save enabled only for SGD and ALS. Nothing will be loaded." << std::endl;
+			if(!fm.loadModel(cmdline.getValue(param_load_model))){
+				std::cout << "WARNING: malformed model file. Nothing will be loaded." << std::endl;
+				fm.init();
 			}
 		}
 
