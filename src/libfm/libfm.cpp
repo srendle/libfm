@@ -94,7 +94,8 @@ int main(int argc, char **argv) {
 
 		const std::string param_help	    	= cmdline.registerParameter("help", "this screen");
 
-		const std::string param_relation	= cmdline.registerParameter("relation", "BS: filenames for the relations, default=''");
+		const std::string param_relation	= cmdline.registerParameter("relation", "BS: filenames for the relations (with inner interactions), default=''");
+        const std::string param_relationN   = cmdline.registerParameter("relationN", "BS: filenames for the relations (without inner interactions), default=''");
 
 		const std::string param_cache_size	= cmdline.registerParameter("cache_size", "cache size for data storage (only applicable if data is in binary format), default=infty");
 
@@ -174,7 +175,7 @@ int main(int argc, char **argv) {
 		}
 
 		DVector<RelationData*> relation;
-		// (1.2) Load relational data
+		// (1.2.1) Load relational data
 		{
 			vector<std::string> rel = cmdline.getStrValues(param_relation);
 		
@@ -195,6 +196,30 @@ int main(int argc, char **argv) {
 				test.relation(i).load(rel[i] + ".test", test.num_cases);
 			}
 		}
+
+
+		DVector<RelationData*> relationN;
+		// (1.2.2) Load relational data (no inner interactions)
+		{
+			vector<std::string> b_rel = cmdline.getStrValues(param_relationN);
+		
+			std::cout << "#relations (N): " << b_rel.size() << std::endl;
+			relationN.setSize(b_rel.size());
+			train.relationN.setSize(b_rel.size());
+			test.relationN.setSize(b_rel.size());
+			for (uint i = 0; i < b_rel.size(); i++) {
+				 relationN(i) = new RelationData(
+					cmdline.getValue(param_cache_size, 0),
+					! (!cmdline.getValue(param_method).compare("mcmc")), // no original data for mcmc
+					! (!cmdline.getValue(param_method).compare("sgd") || !cmdline.getValue(param_method).compare("sgda")) // no transpose data for sgd, sgda
+				);
+				relationN(i)->load(b_rel[i]);
+				train.relationN(i).data = relationN(i);
+				test.relationN(i).data = relationN(i);
+				train.relationN(i).load(b_rel[i] + ".train", train.num_cases);
+				test.relationN(i).load(b_rel[i] + ".test", test.num_cases);
+			}
+		}
 		
 		// (1.3) Load meta data
 		std::cout << "Loading meta data...\t" << std::endl;
@@ -210,15 +235,22 @@ int main(int argc, char **argv) {
 		}
 		
 		// build the joined meta table
-		for (uint r = 0; r < train.relation.dim; r++) {
+		for (uint r = 0; r < train.relation.dim; r++) { // Relation
 			train.relation(r).data->attr_offset = num_all_attribute;
 			num_all_attribute += train.relation(r).data->num_feature;
+		}
+		for (uint r = 0; r < train.relationN.dim; r++) { // Block Relation
+			train.relationN(r).data->attr_offset = num_all_attribute;
+			num_all_attribute += train.relationN(r).data->num_feature;
 		}
 		DataMetaInfo meta(num_all_attribute);
 		{
 			meta.num_attr_groups = meta_main.num_attr_groups;
-			for (uint r = 0; r < relation.dim; r++) {
+			for (uint r = 0; r < relation.dim; r++) { // Relation
 				meta.num_attr_groups += relation(r)->meta->num_attr_groups;
+			}
+			for (uint r = 0; r < relationN.dim; r++) { // Block Relation
+				meta.num_attr_groups += relationN(r)->meta->num_attr_groups;
 			}
 			meta.num_attr_per_group.setSize(meta.num_attr_groups);
 			meta.num_attr_per_group.init(0);		
@@ -229,13 +261,21 @@ int main(int argc, char **argv) {
 
 			uint attr_cntr = meta_main.attr_group.dim;
 			uint attr_group_cntr = meta_main.num_attr_groups;
-			for (uint r = 0; r < relation.dim; r++) {
+			for (uint r = 0; r < relation.dim; r++) { // Relation
 				for (uint i = 0; i < relation(r)->meta->attr_group.dim; i++) {
 					meta.attr_group(i+attr_cntr) = attr_group_cntr + relation(r)->meta->attr_group(i);
 					meta.num_attr_per_group(attr_group_cntr + relation(r)->meta->attr_group(i))++;
 				}
 				attr_cntr += relation(r)->meta->attr_group.dim;
 				attr_group_cntr += relation(r)->meta->num_attr_groups;
+			}
+			for (uint r = 0; r < relationN.dim; r++) { // Block Relation
+				for (uint i = 0; i < relationN(r)->meta->attr_group.dim; i++) {
+					meta.attr_group(i+attr_cntr) = attr_group_cntr + relationN(r)->meta->attr_group(i);
+					meta.num_attr_per_group(attr_group_cntr + relationN(r)->meta->attr_group(i))++;
+				}
+				attr_cntr += relationN(r)->meta->attr_group.dim;
+				attr_group_cntr += relationN(r)->meta->num_attr_groups;
 			}
 			if (cmdline.getValue(param_verbosity, 0) > 0) { meta.debug(); }
 	

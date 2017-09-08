@@ -95,6 +95,7 @@ class Data {
 		DATA_FLOAT max_target;
 
 		DVector<RelationJoin> relation;
+		DVector<RelationJoin> relationN;
 		
 		void load(std::string filename);	
 		void debug();
