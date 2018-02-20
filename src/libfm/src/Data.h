@@ -39,33 +39,11 @@ class DataMetaInfo {
 		DVector<uint> num_attr_per_group;
 		uint num_relations;
 
-		DataMetaInfo(uint num_attributes) {
-			attr_group.setSize(num_attributes);
-			attr_group.init(0);
-			num_attr_groups = 1;
-			num_attr_per_group.setSize(num_attr_groups);
-			num_attr_per_group(0) = num_attributes;
-		}
-		void loadGroupsFromFile(std::string filename) {
-			assert(fileexists(filename));
-			attr_group.load(filename);
-			num_attr_groups = 0;
-			for (uint i = 0; i < attr_group.dim; i++) {
-				num_attr_groups = std::max(num_attr_groups, attr_group(i)+1);
-			}
-			num_attr_per_group.setSize(num_attr_groups);
-			num_attr_per_group.init(0);
-			for (uint i = 0; i < attr_group.dim; i++) {
-				num_attr_per_group(attr_group(i))++;
-			}
-		}
+		DataMetaInfo(uint num_attributes);
+
+		void loadGroupsFromFile(std::string filename);
 	
-		void debug() {
-			std::cout << "#attr=" << attr_group.dim << "\t#groups=" << num_attr_groups << std::endl;
-			for (uint g = 0; g < num_attr_groups; g++) {
-				std::cout << "#attr_in_group[" << g << "]=" << num_attr_per_group(g) << std::endl;
-			}
-		}
+		void debug();
 };
 
 #include "relation.h"
@@ -76,13 +54,7 @@ class Data {
 		bool has_xt;
 		bool has_x;
 	public:	
-		Data(uint64 cache_size, bool has_x, bool has_xt) { 
-			this->data_t = NULL;
-			this->data = NULL;
-			this->cache_size = cache_size;
-			this->has_x = has_x;
-			this->has_xt = has_xt;
-		}
+		Data(uint64 cache_size, bool has_x, bool has_xt);
 
 		LargeSparseMatrix<DATA_FLOAT>* data_t;
 		LargeSparseMatrix<DATA_FLOAT>* data;
@@ -101,6 +73,43 @@ class Data {
 
 		void create_data_t();
 };
+
+DataMetaInfo::DataMetaInfo(uint num_attributes) {
+	attr_group.setSize(num_attributes);
+	attr_group.init(0);
+	num_attr_groups = 1;
+	num_attr_per_group.setSize(num_attr_groups);
+	num_attr_per_group(0) = num_attributes;
+}
+
+void DataMetaInfo::loadGroupsFromFile(std::string filename) {
+	assert(fileexists(filename));
+	attr_group.load(filename);
+	num_attr_groups = 0;
+	for (uint i = 0; i < attr_group.dim; i++) {
+		num_attr_groups = std::max(num_attr_groups, attr_group(i)+1);
+	}
+	num_attr_per_group.setSize(num_attr_groups);
+	num_attr_per_group.init(0);
+	for (uint i = 0; i < attr_group.dim; i++) {
+		num_attr_per_group(attr_group(i))++;
+	}
+}
+
+void DataMetaInfo::debug() {
+	std::cout << "#attr=" << attr_group.dim << "\t#groups=" << num_attr_groups << std::endl;
+	for (uint g = 0; g < num_attr_groups; g++) {
+		std::cout << "#attr_in_group[" << g << "]=" << num_attr_per_group(g) << std::endl;
+	}
+}
+
+Data::Data(uint64 cache_size, bool has_x, bool has_xt) { 
+	this->data_t = NULL;
+	this->data = NULL;
+	this->cache_size = cache_size;
+	this->has_x = has_x;
+	this->has_xt = has_xt;
+}
 
 void Data::load(std::string filename) {
 
