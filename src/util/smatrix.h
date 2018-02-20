@@ -28,45 +28,23 @@
 #include <map>
 #include <set>
 
-
-
 template <typename T> class SparseVector : public std::map<int,T> {
 	public:
-		T get(int x) {
-			typename SparseVector<T>::iterator iter = this->find(x);
-			if (iter != this->end()) {
-				return iter->second;
-			} else {
-				return 0;
-			}			
-		}
+		T get(int x);
 		void toStream(std::ostream &stream);
 };
 
 template <typename T>  class SparseMatrix : public std::map<int, SparseVector<T> > { 
 	public:
-		T get(int x, int y) {
-			typename SparseMatrix<T>::iterator iter = this->find(x);
-			if (iter != this->end()) {
-				return iter->second.get(y);
-			} else {
-				return 0;
-			}
-		}
-		void toStream(std::ostream &stream);		
+		T get(int x, int y);
+		void toStream(std::ostream &stream);
 		void fromFile(const std::string &filename);
 };
+
 template <typename T> class SparseTensor : public std::map<int, SparseMatrix<T> > {
 	public:
-		T get(int x, int y, int z) {
-			typename SparseTensor<T>::iterator iter = this->find(x);
-			if (iter != this->end()) {
-				return iter->second.get(y, z);
-			} else {
-				return 0;
-			}
-		}	
-		void toStream(std::ostream &stream);		
+		T get(int x, int y, int z);
+		void toStream(std::ostream &stream);
 		void toFile(const std::string &filename);
 		void fromFile(const std::string &filename);
 };
@@ -80,48 +58,45 @@ class SparseTensorDouble : public SparseTensor<double> {};
 
 class SparseVectorBoolean : public std::set<int> {
 	public:
-		bool get(int x) {
-			SparseVectorBoolean::iterator iter = this->find(x);
-			if (iter != this->end()) {
-				return true;
-			} else {
-				return false;
-			}			
-		}
+		bool get(int x);
 };
 
-class SparseMatrixBoolean : public std::map<int, SparseVectorBoolean > {
+class SparseMatrixBoolean : public std::map<int, SparseVectorBoolean> {
 	public:
-		bool get(int x, int y) {
-			SparseMatrixBoolean::iterator iter = this->find(x);
-			if (iter != this->end()) {
-				return iter->second.get(y);
-			} else {
-				return 0;
-			}
-		}
-		void fromFile(const std::string &filename);	
+		bool get(int x, int y);
+		void fromFile(const std::string &filename);
 };
 
 class SparseTensorBoolean : public std::map<int, SparseMatrixBoolean> {
 	public:
-		bool get(int x, int y, int z) {
-			SparseTensorBoolean::iterator iter = this->find(x);
-			if (iter != this->end()) {
-				return iter->second.get(y, z);
-			} else {
-				return 0;
-			}
-		}	
+		bool get(int x, int y, int z);
 		void toStream(std::ostream &stream);
 		void toFile(const std::string &filename);
-		void fromFile(const std::string &filename);		
+		void fromFile(const std::string &filename);
 };
 
+// Implementation
+template <typename T> T SparseVector<T>::get(int x) {
+	typename SparseVector<T>::iterator iter = this->find(x);
+	if (iter != this->end()) {
+		return iter->second;
+	} else {
+		return 0;
+	}
+}
 
 template <typename T> void SparseVector<T>::toStream(std::ostream &stream) {
 	for(typename SparseVector<T>::const_iter it_cell = this->begin(); it_cell != this->end(); ++it_cell) {
 		stream << it_cell->first << " " << it_cell->second << std::endl;
+	}
+}
+
+template <typename T> T SparseMatrix<T>::get(int x, int y) {
+	typename SparseMatrix<T>::iterator iter = this->find(x);
+	if (iter != this->end()) {
+		return iter->second.get(y);
+	} else {
+		return 0;
 	}
 }
 
@@ -130,6 +105,15 @@ template <typename T> void SparseMatrix<T>::toStream(std::ostream &stream) {
 		for(typename SparseVector<T>::const_iter j = i->second->begin(); j != i->second->end(); ++j) {
 			stream << i->first << " " << j->first << " " << j->second << std::endl;
 		}
+	}
+}
+
+template <typename T> T SparseTensor<T>::get(int x, int y, int z) {
+	typename SparseTensor<T>::iterator iter = this->find(x);
+	if (iter != this->end()) {
+		return iter->second.get(y, z);
+	} else {
+		return 0;
 	}
 }
 
@@ -142,7 +126,7 @@ template <typename T> void SparseTensor<T>::toStream(std::ostream &stream) {
 		}
 	}
 }
-	
+
 template <typename T> void SparseTensor<T>::toFile(const std::string &filename) {
 	std::ofstream out_file (filename.c_str());
 	if (out_file.is_open())	{
@@ -150,16 +134,15 @@ template <typename T> void SparseTensor<T>::toFile(const std::string &filename) 
 		out_file.close();
 	} else {
 		throw "Unable to open file " + filename;
-	}	
-	
+	}
 }
 
 template <typename T> void SparseTensor<T>::fromFile(const std::string &filename) {
 	std::ifstream fData (filename.c_str());
-  	if (! fData.is_open()) {
+	if (! fData.is_open()) {
 		throw "Unable to open file " + filename;
-	}	
-	while (! fData.eof()) {	
+	}
+	while (! fData.eof()) {
 		int t, m, v;
 		fData >> t;
 		fData >> m;
@@ -167,28 +150,55 @@ template <typename T> void SparseTensor<T>::fromFile(const std::string &filename
 		if (! fData.eof()) {
 			T value;
 			fData >> value;
-			(*this)[t][m][v] = value;	
+			(*this)[t][m][v] = value;
 		} 
 	}
-	fData.close();		
+	fData.close();
 }
 
 template <typename T> void SparseMatrix<T>::fromFile(const std::string &filename) {
 	std::ifstream fData (filename.c_str());
-  	if (! fData.is_open()) {
+	if (! fData.is_open()) {
 		throw "Unable to open file " + filename;
-	}	
-	while (! fData.eof()) {	
+	}
+	while (! fData.eof()) {
 		int t, m;
 		fData >> t;
 		fData >> m;
 		if (! fData.eof()) {
 			T value;
 			fData >> value;
-			(*this)[t][m] = value;	
+			(*this)[t][m] = value;
 		} 
 	}
-	fData.close();		
+	fData.close();
+}
+
+bool SparseVectorBoolean::get(int x) {
+	SparseVectorBoolean::iterator iter = this->find(x);
+	if (iter != this->end()) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool SparseMatrixBoolean::get(int x, int y) {
+	SparseMatrixBoolean::iterator iter = this->find(x);
+	if (iter != this->end()) {
+		return iter->second.get(y);
+	} else {
+		return 0;
+	}
+}
+
+bool SparseTensorBoolean::get(int x, int y, int z) {
+	SparseTensorBoolean::iterator iter = this->find(x);
+	if (iter != this->end()) {
+		return iter->second.get(y, z);
+	} else {
+		return 0;
+	}
 }
 
 void SparseTensorBoolean::toStream(std::ostream &stream) {

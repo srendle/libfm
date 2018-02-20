@@ -66,8 +66,7 @@ class fm_model {
 	
 };
 
-
-
+// Implementation
 fm_model::fm_model() {
 	num_factor = 0;
 	init_mean = 0;

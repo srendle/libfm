@@ -74,6 +74,7 @@ class Data {
 		void create_data_t();
 };
 
+// Implementation
 DataMetaInfo::DataMetaInfo(uint num_attributes) {
 	attr_group.setSize(num_attributes);
 	attr_group.init(0);

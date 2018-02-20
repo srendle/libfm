@@ -79,7 +79,7 @@ template <typename T> class DVector {
 		T get(uint x);
 		void setSize(uint p_dim);
 		T& operator() (unsigned x);
-		T operator() (unsigned x);
+		T operator() (unsigned x) const;
 		void init(T v);
 		void assign(T* v);
 		void assign(DVector<T>& v);
@@ -91,7 +91,6 @@ template <typename T> class DVector {
 		void loadFromBinaryFile(std::string filename);
 };
 
-
 class DVectorDouble : public DVector<double> {
 	public:
 		void init_normal(double mean, double stdev);
@@ -99,20 +98,11 @@ class DVectorDouble : public DVector<double> {
 
 class DMatrixDouble : public DMatrix<double> {
 	public:
-		void init(double mean, double stdev) {	
-			for (uint i_1 = 0; i_1 < dim1; i_1++) {
-				for (uint i_2 = 0; i_2 < dim2; i_2++) {
-					value[i_1][i_2] = ran_gaussian(mean, stdev);
-				}
-			}
-		}
-		void init_column(double mean, double stdev, int column) {	
-			for (uint i_1 = 0; i_1 < dim1; i_1++) {
-				value[i_1][column] = ran_gaussian(mean, stdev);
-			}
-		}
+		void init(double mean, double stdev);
+		void init_column(double mean, double stdev, int column);
 };
 
+// Implementation
 template <typename T> T DMatrix<T>::get(uint x, uint y) {
 //assert((x < dim1) && (y < dim2));
 	return value[x][y];
@@ -182,22 +172,22 @@ template <typename T> void DMatrix<T>::setSize(uint p_dim1, uint p_dim2) {
 	}
 }
 
-template <typename T> DMatrix<T>::T& operator() (unsigned x, unsigned y) {
+template <typename T> T& DMatrix<T>::operator() (unsigned x, unsigned y) {
 //	assert((x < dim1) && (y < dim2));
 	return value[x][y];	
 }
 
-template <typename T> DMatrix<T>::T operator() (unsigned x, unsigned y) const {
+template <typename T> T DMatrix<T>::operator() (unsigned x, unsigned y) const {
 //	assert((x < dim1) && (y < dim2));
 	return value[x][y];
 }
 
-template <typename T> DMatrix<T>::T* operator() (unsigned x) const {
+template <typename T> T* DMatrix<T>::operator() (unsigned x) const {
 //	assert((x < dim1));
 	return value[x];
 }
 
-template <typename T> void DMatrix<T>::save(std::string filename, bool has_header = false) {
+template <typename T> void DMatrix<T>::save(std::string filename, bool has_header) {
 	std::ofstream out_file (filename.c_str());
 	if (out_file.is_open())	{
 		if (has_header) {

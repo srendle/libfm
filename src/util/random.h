@@ -26,7 +26,6 @@
 #include <cmath>
 #include <assert.h>
 
-
 double ran_gaussian();
 double ran_gaussian(double mean, double stdev);
 double ran_left_tgaussian(double left);
@@ -42,8 +41,7 @@ double erf(double x);
 double cdf_gaussian(double x, double mean, double stdev);
 double cdf_gaussian(double x);
 
-
-
+// Implementation
 double erf(double x) {
 	double t;
 	if (x >= 0) {

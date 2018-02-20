@@ -34,15 +34,8 @@ class RelationData {
 		uint cache_size;
 		bool has_xt;
 		bool has_x;
-	public:	
-		RelationData(uint cache_size, bool has_x, bool has_xt) { 
-			this->data_t = NULL;
-			this->data = NULL;
-			this->cache_size = cache_size;
-			this->has_x = has_x;
-			this->has_xt = has_xt;
-			this->meta = NULL;
-		}
+	public:
+		RelationData(uint cache_size, bool has_x, bool has_xt); 
 		DataMetaInfo* meta;
 
 		LargeSparseMatrix<DATA_FLOAT>* data_t;
@@ -52,44 +45,29 @@ class RelationData {
 		uint num_cases;
 		uint attr_offset; 
  
-		void load(std::string filename);	
+		void load(std::string filename);
 		void debug();
 };
-
 
 class RelationJoin {
 	public:
 		DVector<uint> data_row_to_relation_row;
 		RelationData* data;
 
-		void load(std::string filename, uint expected_row_count) {
-			bool do_binary = false;
-			// check if binary or text format should be read
-			{
-				std::ifstream in (filename.c_str(), std::ios_base::in | std::ios_base::binary);
-				if (in.is_open()) {
-					uint file_version;
-					uint data_size;
-					in.read(reinterpret_cast<char*>(&file_version), sizeof(file_version));
-					in.read(reinterpret_cast<char*>(&data_size), sizeof(data_size));
-					do_binary = ((file_version == DVECTOR_EXPECTED_FILE_ID) && (data_size == sizeof(uint)));
-					in.close();
-				}
-			}
-			if (do_binary) {
-				//std::cout << "(binary mode) " << std::endl;
-				data_row_to_relation_row.loadFromBinaryFile(filename);
-			} else {
-				//std::cout << "(text mode) " << std::endl;
-				data_row_to_relation_row.setSize(expected_row_count);
-				data_row_to_relation_row.load(filename);
-			}
-			assert(data_row_to_relation_row.dim == expected_row_count);
-		}
+		void load(std::string filename, uint expected_row_count);
 };
 
-void RelationData::load(std::string filename) {
+// Implementation
+RelationData::RelationData(uint cache_size, bool has_x, bool has_xt) { 
+	this->data_t = NULL;
+	this->data = NULL;
+	this->cache_size = cache_size;
+	this->has_x = has_x;
+	this->has_xt = has_xt;
+	this->meta = NULL;
+}
 
+void RelationData::load(std::string filename) {
 	std::cout << "has x = " << has_x << std::endl;
 	std::cout << "has xt = " << has_xt << std::endl;
 	assert(has_x || has_xt);
@@ -143,6 +121,31 @@ void RelationData::debug() {
 			std::cout << std::endl;
 		}
 	}	
+}
+
+void RelationJoin::load(std::string filename, uint expected_row_count) {
+	bool do_binary = false;
+	// check if binary or text format should be read
+	{
+		std::ifstream in (filename.c_str(), std::ios_base::in | std::ios_base::binary);
+		if (in.is_open()) {
+			uint file_version;
+			uint data_size;
+			in.read(reinterpret_cast<char*>(&file_version), sizeof(file_version));
+			in.read(reinterpret_cast<char*>(&data_size), sizeof(data_size));
+			do_binary = ((file_version == DVECTOR_EXPECTED_FILE_ID) && (data_size == sizeof(uint)));
+			in.close();
+		}
+	}
+	if (do_binary) {
+		//std::cout << "(binary mode) " << std::endl;
+		data_row_to_relation_row.loadFromBinaryFile(filename);
+	} else {
+		//std::cout << "(text mode) " << std::endl;
+		data_row_to_relation_row.setSize(expected_row_count);
+		data_row_to_relation_row.load(filename);
+	}
+	assert(data_row_to_relation_row.dim == expected_row_count);
 }
 
 #endif /*RELATION_DATA_H_*/
