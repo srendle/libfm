@@ -36,10 +36,10 @@ class fm_learn_sgd: public fm_learn {
   public:
     int num_iter;
     double learn_rate;
-    DVector<double> learn_rates;    
+    DVector<double> learn_rates;
 
     virtual void init();
-    virtual void learn(Data& train, Data& test); 
+    virtual void learn(Data& train, Data& test);
     void SGD(sparse_row<DATA_FLOAT> &x, const double multiplier, DVector<double> &sum);
 
     void debug();
@@ -48,13 +48,13 @@ class fm_learn_sgd: public fm_learn {
 
 // Implementation
 void fm_learn_sgd::init() {
-  fm_learn::init();  
+  fm_learn::init();
   learn_rates.setSize(3);
-//  sum.setSize(fm->num_factor);    
+//  sum.setSize(fm->num_factor);
 //  sum_sqr.setSize(fm->num_factor);
 }
 
-void fm_learn_sgd::learn(Data& train, Data& test) { 
+void fm_learn_sgd::learn(Data& train, Data& test) {
   fm_learn::learn(train, test);
   std::cout << "learnrate=" << learn_rate << std::endl;
   std::cout << "learnrates=" << learn_rates(0) << "," << learn_rates(1) << "," << learn_rates(2) << std::endl;
@@ -67,8 +67,8 @@ void fm_learn_sgd::learn(Data& train, Data& test) {
 }
 
 void fm_learn_sgd::SGD(sparse_row<DATA_FLOAT> &x, const double multiplier, DVector<double> &sum) {
-  fm_SGD(fm, learn_rate, x, multiplier, sum); 
-} 
+  fm_SGD(fm, learn_rate, x, multiplier, sum);
+}
 
 void fm_learn_sgd::debug() {
   std::cout << "num_iter=" << num_iter << std::endl;
@@ -89,7 +89,7 @@ void fm_learn_sgd::predict(Data& data, DVector<double>& out) {
     }
     out(data.data->getRowIndex()) = p;
   }
-} 
+}
 
 
 #endif /*FM_LEARN_SGD_H_*/

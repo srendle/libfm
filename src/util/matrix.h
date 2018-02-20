@@ -37,7 +37,7 @@ struct dmatrix_file_header {
   uint type_size;
   uint num_rows;
   uint num_cols;
-}; 
+};
 
 template <typename T> class DMatrix {
   public:
@@ -45,7 +45,7 @@ template <typename T> class DMatrix {
 
     std::vector<std::string> col_names;
     uint dim1, dim2;
-    
+
     T get(uint x, uint y);
 
     DMatrix(uint p_dim1, uint p_dim2);
@@ -57,7 +57,7 @@ template <typename T> class DMatrix {
     void assign(DMatrix<T>& v);
     void init(T v);
     void setSize(uint p_dim1, uint p_dim2);
-    
+
     T& operator() (unsigned x, unsigned y);
     T operator() (unsigned x, unsigned y) const;
     T* operator() (unsigned x) const;
@@ -110,14 +110,14 @@ template <typename T> T DMatrix<T>::get(uint x, uint y) {
 
 template <typename T> DMatrix<T>::DMatrix(uint p_dim1, uint p_dim2) {
   dim1 = 0;
-  dim2 = 0;  
+  dim2 = 0;
   value = NULL;
   setSize(p_dim1, p_dim2);
 }
 
 template <typename T> DMatrix<T>::DMatrix() {
   dim1 = 0;
-  dim2 = 0;  
+  dim2 = 0;
   value = NULL;
 }
 
@@ -161,7 +161,7 @@ template <typename T> void DMatrix<T>::setSize(uint p_dim1, uint p_dim2) {
   dim2 = p_dim2;
   MemoryLog::getInstance().logNew("dmatrix", sizeof(T*), dim1);
   value = new T*[dim1];
-  MemoryLog::getInstance().logNew("dmatrix", sizeof(T), dim1*dim2);  
+  MemoryLog::getInstance().logNew("dmatrix", sizeof(T), dim1*dim2);
   value[0] = new T[dim1 * dim2];
   for (unsigned i = 1; i < dim1; i++) {
     value[i] = value[0] + i * dim2;
@@ -174,7 +174,7 @@ template <typename T> void DMatrix<T>::setSize(uint p_dim1, uint p_dim2) {
 
 template <typename T> T& DMatrix<T>::operator() (unsigned x, unsigned y) {
 //  assert((x < dim1) && (y < dim2));
-  return value[x][y];  
+  return value[x][y];
 }
 
 template <typename T> T DMatrix<T>::operator() (unsigned x, unsigned y) const {
@@ -195,8 +195,8 @@ template <typename T> void DMatrix<T>::save(std::string filename, bool has_heade
         if (i_2 > 0) {
           out_file << "\t";
         }
-        out_file << col_names[i_2];          
-      }  
+        out_file << col_names[i_2];
+      }
       out_file << std::endl;
     }
     for (uint i_1 = 0; i_1 < dim1; i_1++) {
@@ -211,7 +211,7 @@ template <typename T> void DMatrix<T>::save(std::string filename, bool has_heade
     out_file.close();
   } else {
     std::cout << "Unable to open file " << filename;
-  }         
+  }
 }
 
 template <typename T> void DMatrix<T>::saveToBinaryFile(std::string filename) {
@@ -255,7 +255,7 @@ template <typename T> void DMatrix<T>::load(std::string filename) {
   std::ifstream in_file (filename.c_str());
   if (! in_file.is_open()) {
     throw "Unable to open file " + filename;
-  }  
+  }
   for (uint i_1 = 0; i_1 < dim1; i_1++) {
     for (uint i_2 = 0; i_2 < dim2; i_2++) {
       T v;
@@ -265,7 +265,7 @@ template <typename T> void DMatrix<T>::load(std::string filename) {
   }
   in_file.close();
 }
- 
+
 template <typename T> DVector<T>::DVector() {
   dim = 0;
   value = NULL;
@@ -296,11 +296,11 @@ template <typename T> void DVector<T>::setSize(uint p_dim) {
   }
   dim = p_dim;
   MemoryLog::getInstance().logNew("dvector", sizeof(T), dim);
-  value = new T[dim];      
+  value = new T[dim];
 }
 
 template <typename T> T& DVector<T>::operator() (unsigned x) {
-  return value[x];  
+  return value[x];
 }
 
 template <typename T> T DVector<T>::operator() (unsigned x) const {
@@ -401,7 +401,7 @@ void DMatrixDouble::init(double mean, double stdev) {
   }
 }
 
-void DMatrixDouble::init_column(double mean, double stdev, int column) {  
+void DMatrixDouble::init_column(double mean, double stdev, int column) {
   for (uint i_1 = 0; i_1 < dim1; i_1++) {
     value[i_1][column] = ran_gaussian(mean, stdev);
   }

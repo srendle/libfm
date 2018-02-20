@@ -44,16 +44,16 @@ class fm_model {
   public:
     // the following values should be set:
     uint num_attribute;
-    
+
     bool k0, k1;
     int num_factor;
-    
+
     double reg0;
     double regw, regv;
-    
+
     double init_stdev;
     double init_mean;
-    
+
     fm_model();
     void debug();
     void init();
@@ -63,7 +63,7 @@ class fm_model {
     int loadModel(std::string model_file_path);
   private:
     void splitString(const std::string& s, char c, std::vector<std::string>& v);
-  
+
 };
 
 // Implementation
@@ -73,7 +73,7 @@ fm_model::fm_model() {
   init_stdev = 0.01;
   reg0 = 0.0;
   regw = 0.0;
-  regv = 0.0; 
+  regv = 0.0;
   k0 = true;
   k1 = true;
 }
@@ -85,7 +85,7 @@ void fm_model::debug() {
   std::cout << "dim v =" << num_factor << std::endl;
   std::cout << "reg_w0=" << reg0 << std::endl;
   std::cout << "reg_w=" << regw << std::endl;
-  std::cout << "reg_v=" << regv << std::endl; 
+  std::cout << "reg_v=" << regv << std::endl;
   std::cout << "init ~ N(" << init_mean << "," << init_stdev << ")" << std::endl;
 }
 
@@ -100,12 +100,12 @@ void fm_model::init() {
 }
 
 double fm_model::predict(sparse_row<FM_FLOAT>& x) {
-  return predict(x, m_sum, m_sum_sqr);    
+  return predict(x, m_sum, m_sum_sqr);
 }
 
 double fm_model::predict(sparse_row<FM_FLOAT>& x, DVector<double> &sum, DVector<double> &sum_sqr) {
   double result = 0;
-  if (k0) {  
+  if (k0) {
     result += w0;
   }
   if (k1) {
@@ -178,8 +178,8 @@ int fm_model::loadModel(std::string model_file_path) {
     for (uint i = 0; i<num_attribute; i++){
       if(!std::getline(model_file,line)){return 0;}
       std::vector<std::string> v_str;
-      splitString(line, ' ', v_str);      
-      if ((int)v_str.size() != num_factor){return 0;}      
+      splitString(line, ' ', v_str);
+      if ((int)v_str.size() != num_factor){return 0;}
       for (int f = 0; f < num_factor; f++) {
         v(f,i) = std::atof(v_str[f].c_str());
       }

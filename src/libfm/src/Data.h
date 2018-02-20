@@ -42,7 +42,7 @@ class DataMetaInfo {
     DataMetaInfo(uint num_attributes);
 
     void loadGroupsFromFile(std::string filename);
-  
+
     void debug();
 };
 
@@ -53,7 +53,7 @@ class Data {
     uint64 cache_size;
     bool has_xt;
     bool has_x;
-  public:  
+  public:
     Data(uint64 cache_size, bool has_x, bool has_xt);
 
     LargeSparseMatrix<DATA_FLOAT>* data_t;
@@ -62,13 +62,13 @@ class Data {
 
     int num_feature;
     uint num_cases;
- 
+
     DATA_FLOAT min_target;
     DATA_FLOAT max_target;
 
     DVector<RelationJoin> relation;
-    
-    void load(std::string filename);  
+
+    void load(std::string filename);
     void debug();
 
     void create_data_t();
@@ -104,7 +104,7 @@ void DataMetaInfo::debug() {
   }
 }
 
-Data::Data(uint64 cache_size, bool has_x, bool has_xt) { 
+Data::Data(uint64 cache_size, bool has_x, bool has_xt) {
   this->data_t = NULL;
   this->data = NULL;
   this->cache_size = cache_size;
@@ -130,7 +130,7 @@ void Data::load(std::string filename) {
     uint num_values = 0;
     uint64 this_cs = cache_size;
     if (has_xt && has_x) { this_cs /= 2; }
-    
+
     if (load_from == 1) {
       this->target.loadFromBinaryFile(filename + ".target");
     } else {
@@ -144,7 +144,7 @@ void Data::load(std::string filename) {
         this->data = new LargeSparseMatrixHD<DATA_FLOAT>(filename + ".x", this_cs);
       }
       assert(this->target.dim == this->data->getNumRows());
-      this->num_feature = this->data->getNumCols();  
+      this->num_feature = this->data->getNumCols();
       num_values = this->data->getNumValues();
     } else {
       data = NULL;
@@ -161,7 +161,7 @@ void Data::load(std::string filename) {
     } else {
       data_t = NULL;
     }
-    
+
     if (has_xt && has_x) {
       assert(this->data->getNumCols() == this->data_t->getNumRows());
       assert(this->data->getNumRows() == this->data_t->getNumCols());
@@ -171,7 +171,7 @@ void Data::load(std::string filename) {
     max_target = -std::numeric_limits<DATA_FLOAT>::max();
     for (uint i = 0; i < this->target.dim; i++) {
       min_target = std::min(this->target(i), min_target);
-      max_target = std::max(this->target(i), max_target);        
+      max_target = std::max(this->target(i), max_target);
     }
     num_cases = target.dim;
 
@@ -180,7 +180,7 @@ void Data::load(std::string filename) {
   }
 
   this->data = new LargeSparseMatrixMemory<DATA_FLOAT>();
-  
+
   DVector< sparse_row<DATA_FLOAT> >& data = ((LargeSparseMatrixMemory<DATA_FLOAT>*)this->data)->data;
 
   int num_rows = 0;
@@ -189,7 +189,7 @@ void Data::load(std::string filename) {
   bool has_feature = false;
   min_target = +std::numeric_limits<DATA_FLOAT>::max();
   max_target = -std::numeric_limits<DATA_FLOAT>::max();
-  
+
   // (1) determine the number of rows and the maximum feature_id
   {
     std::ifstream fData(filename.c_str());
@@ -207,38 +207,38 @@ void Data::load(std::string filename) {
       if (sscanf(pline, "%f%n", &_value, &nchar) >=1) {
         pline += nchar;
         min_target = std::min(_value, min_target);
-        max_target = std::max(_value, max_target);      
+        max_target = std::max(_value, max_target);
         num_rows++;
         while (sscanf(pline, "%d:%f%n", &_feature, &_value, &nchar) >= 2) {
-          pline += nchar;  
+          pline += nchar;
           num_feature = std::max(_feature, num_feature);
           has_feature = true;
-          num_values++;  
+          num_values++;
         }
         while ((*pline != 0) && ((*pline == ' ')  || (*pline == 9))) { pline++; } // skip trailing spaces
-        if ((*pline != 0)  && (*pline != '#')) { 
+        if ((*pline != 0)  && (*pline != '#')) {
           throw "cannot parse line \"" + line + "\" at character " + pline[0];
         }
       } else {
         throw "cannot parse line \"" + line + "\" at character " + pline[0];
       }
-    } 
+    }
     fData.close();
-  }  
+  }
 
-  if (has_feature) {  
+  if (has_feature) {
     num_feature++; // number of feature is bigger (by one) than the largest value
   }
   std::cout << "num_rows=" << num_rows << "\tnum_values=" << num_values << "\tnum_features=" << num_feature << "\tmin_target=" << min_target << "\tmax_target=" << max_target << std::endl;
   data.setSize(num_rows);
   target.setSize(num_rows);
-  
+
   ((LargeSparseMatrixMemory<DATA_FLOAT>*)this->data)->num_cols = num_feature;
   ((LargeSparseMatrixMemory<DATA_FLOAT>*)this->data)->num_values = num_values;
 
-  MemoryLog::getInstance().logNew("data_float", sizeof(sparse_entry<DATA_FLOAT>), num_values);      
+  MemoryLog::getInstance().logNew("data_float", sizeof(sparse_entry<DATA_FLOAT>), num_values);
   sparse_entry<DATA_FLOAT>* cache = new sparse_entry<DATA_FLOAT>[num_values];
-  
+
   // (2) read the data
   {
     std::ifstream fData(filename.c_str());
@@ -261,9 +261,9 @@ void Data::load(std::string filename) {
         target.value[row_id] = _value;
         data.value[row_id].data = &(cache[cache_id]);
         data.value[row_id].size = 0;
-      
+
         while (sscanf(pline, "%d:%f%n", &_feature, &_value, &nchar) >= 2) {
-          pline += nchar;  
+          pline += nchar;
           assert(cache_id < num_values);
           cache[cache_id].id = _feature;
           cache[cache_id].value = _value;
@@ -273,7 +273,7 @@ void Data::load(std::string filename) {
         row_id++;
 
         while ((*pline != 0) && ((*pline == ' ')  || (*pline == 9))) { pline++; } // skip trailing spaces
-        if ((*pline != 0)  && (*pline != '#')) { 
+        if ((*pline != 0)  && (*pline != '#')) {
           throw "cannot parse line \"" + line + "\" at character " + pline[0];
         }
       } else {
@@ -281,10 +281,10 @@ void Data::load(std::string filename) {
       }
     }
     fData.close();
-    
+
     assert(num_rows == row_id);
-    assert(num_values == cache_id);    
-  }  
+    assert(num_values == cache_id);
+  }
 
   num_cases = target.dim;
 
@@ -301,7 +301,7 @@ void Data::create_data_t() {
 
   // make transpose copy of training data
   data_t.setSize(num_feature);
-    
+
   // find dimensionality of matrix
   DVector<uint> num_values_per_column;
   num_values_per_column.setSize(num_feature);
@@ -312,21 +312,21 @@ void Data::create_data_t() {
       num_values_per_column(data(i).data[j].id)++;
       num_values++;
     }
-  }  
+  }
 
 
   ((LargeSparseMatrixMemory<DATA_FLOAT>*)this->data_t)->num_cols = data.dim;
   ((LargeSparseMatrixMemory<DATA_FLOAT>*)this->data_t)->num_values = num_values;
 
   // create data structure for values
-  MemoryLog::getInstance().logNew("data_float", sizeof(sparse_entry<DATA_FLOAT>), num_values);      
+  MemoryLog::getInstance().logNew("data_float", sizeof(sparse_entry<DATA_FLOAT>), num_values);
   sparse_entry<DATA_FLOAT>* cache = new sparse_entry<DATA_FLOAT>[num_values];
   long long cache_id = 0;
   for (uint i = 0; i < data_t.dim; i++) {
     data_t.value[i].data = &(cache[cache_id]);
     data_t(i).size = num_values_per_column(i);
-    cache_id += num_values_per_column(i);        
-  } 
+    cache_id += num_values_per_column(i);
+  }
   // write the data into the transpose matrix
   num_values_per_column.init(0); // num_values per column now contains the pointer on the first empty field
   for (uint i = 0; i < data.dim; i++) {
@@ -348,11 +348,11 @@ void Data::debug() {
     for (data->begin(); (!data->end()) && (data->getRowIndex() < 4); data->next() ) {
       std::cout << target(data->getRowIndex());
       for (uint j = 0; j < data->getRow().size; j++) {
-        std::cout << " " << data->getRow().data[j].id << ":" << data->getRow().data[j].value;  
+        std::cout << " " << data->getRow().data[j].id << ":" << data->getRow().data[j].value;
       }
       std::cout << std::endl;
     }
-  }  
+  }
 }
 
 #endif /*DATA_H_*/

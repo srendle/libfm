@@ -34,7 +34,7 @@ class RLog {
     std::map<std::string,double> value;
   public:
     RLog(std::ostream* stream);
- 
+
     void log(const std::string& field, double d);
 
     void init();
@@ -45,7 +45,7 @@ class RLog {
 };
 
 // Implementation
-RLog::RLog(std::ostream* stream) { 
+RLog::RLog(std::ostream* stream) {
   out = stream;
   header.clear();
   default_value.clear();
@@ -69,7 +69,7 @@ void RLog::init() {
     out->flush();
   }
   for (uint i = 0; i < header.size(); i++) {
-    value[header[i]] = default_value[header[i]];  
+    value[header[i]] = default_value[header[i]];
   }
 }
 
@@ -94,9 +94,9 @@ void RLog::newLine() {
       }
     }
     out->flush();
-    value.clear();  
+    value.clear();
     for (uint i = 0; i < header.size(); i++) {
-      value[header[i]] = default_value[header[i]];  
+      value[header[i]] = default_value[header[i]];
     }
   }
 }

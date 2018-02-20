@@ -35,7 +35,7 @@ template <typename T> struct sparse_entry {
   uint id;
   T value;
 };
-  
+
 template <typename T> struct sparse_row {
   sparse_entry<T>* data;
   uint size;
@@ -47,19 +47,19 @@ struct file_header {
   uint64 num_values;
   uint num_rows;
   uint num_cols;
-}; 
+};
 
 template <typename T> class LargeSparseMatrix {
   public:
     virtual void begin() = 0; // go to the beginning
     virtual bool end() = 0;   // are we at the end?
     virtual void next() = 0; // go to the next line
-    virtual sparse_row<T>& getRow() = 0; // pointer to the current row 
+    virtual sparse_row<T>& getRow() = 0; // pointer to the current row
     virtual uint getRowIndex() = 0; // index of current row (starting with 0)
     virtual uint getNumRows() = 0; // get the number of Rows
     virtual uint getNumCols() = 0; // get the number of Cols
     virtual uint64 getNumValues() = 0; // get the number of Values
-    
+
 
     void saveToBinaryFile(std::string filename);
 
@@ -71,7 +71,7 @@ template <typename T> class LargeSparseMatrixHD : public LargeSparseMatrix<T> {
     DVector< sparse_row<T> > data;
     DVector< sparse_entry<T> > cache;
     std::string filename;
-    
+
     std::ifstream in;
 
     uint64 position_in_data_cache;
@@ -81,12 +81,12 @@ template <typename T> class LargeSparseMatrixHD : public LargeSparseMatrix<T> {
 
     uint num_cols;
     uint64 num_values;
-    uint num_rows;  
+    uint num_rows;
 
     void readcache();
 
   public:
-    LargeSparseMatrixHD(std::string filename, uint64 cache_size); 
+    LargeSparseMatrixHD(std::string filename, uint64 cache_size);
 //    ~LargeSparseMatrixHD() { in.close(); }
 
     virtual uint getNumRows();
@@ -184,13 +184,13 @@ template <typename T> void LargeSparseMatrixHD<T>::readcache() {
     this_row.data = &(cache.value[number_of_valid_entries_in_cache]);
     in.read(reinterpret_cast<char*>(this_row.data), sizeof(sparse_entry<T>)*this_row.size);
 
-    number_of_valid_rows_in_cache++;          
+    number_of_valid_rows_in_cache++;
     number_of_valid_entries_in_cache += this_row.size;
   } while (true);
 
 }
 
-template <typename T> LargeSparseMatrixHD<T>::LargeSparseMatrixHD(std::string filename, uint64 cache_size) { 
+template <typename T> LargeSparseMatrixHD<T>::LargeSparseMatrixHD(std::string filename, uint64 cache_size) {
   this->filename = filename;
   in.open(filename.c_str(), std::ios_base::in | std::ios_base::binary);
   if (in.is_open()) {
@@ -200,7 +200,7 @@ template <typename T> LargeSparseMatrixHD<T>::LargeSparseMatrixHD(std::string fi
     assert(fh.float_size == sizeof(T));
     this->num_values = fh.num_values;
     this->num_rows = fh.num_rows;
-    this->num_cols = fh.num_cols;        
+    this->num_cols = fh.num_cols;
     //in.close();
   } else {
     throw "could not open " + filename;

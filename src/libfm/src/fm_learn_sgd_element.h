@@ -49,7 +49,7 @@ void fm_learn_sgd_element::init() {
 void fm_learn_sgd_element::learn(Data& train, Data& test) {
   fm_learn_sgd::learn(train, test);
 
-  std::cout << "SGD: DON'T FORGET TO SHUFFLE THE ROWS IN TRAINING DATA TO GET THE BEST RESULTS." << std::endl; 
+  std::cout << "SGD: DON'T FORGET TO SHUFFLE THE ROWS IN TRAINING DATA TO GET THE BEST RESULTS." << std::endl;
   // SGD
   for (int i = 0; i < num_iter; i++) {
 
@@ -64,7 +64,7 @@ void fm_learn_sgd_element::learn(Data& train, Data& test) {
       } else if (task == 1) {
         mult = -train.target(train.data->getRowIndex())*(1.0-1.0/(1.0+exp(-train.target(train.data->getRowIndex())*p)));
       }
-      SGD(train.data->getRow(), mult, sum);          
+      SGD(train.data->getRow(), mult, sum);
     }
     iteration_time = (getusertime() - iteration_time);
     double rmse_train = evaluate(train);

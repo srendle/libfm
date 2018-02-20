@@ -45,7 +45,7 @@
 
 class fm_learn_mcmc_simultaneous : public fm_learn_mcmc {
   protected:
-    
+
     virtual void _learn(Data& train, Data& test);
 
     void _evaluate(DVector<double>& pred, DVector<DATA_FLOAT>& target, double normalizer, double& rmse, double& mae, uint from_case, uint to_case);
@@ -94,7 +94,7 @@ void fm_learn_mcmc_simultaneous::_learn(Data& train, Data& test) {
     double iteration_time = getusertime();
     clock_t iteration_time3 = clock();
     double iteration_time4 = getusertime4();
-    nan_cntr_w0 = 0; inf_cntr_w0 = 0; nan_cntr_w = 0; inf_cntr_w = 0; nan_cntr_v = 0; inf_cntr_v = 0; nan_cntr_alpha = 0; inf_cntr_alpha = 0; nan_cntr_w_mu = 0; inf_cntr_w_mu = 0; nan_cntr_w_lambda = 0; inf_cntr_w_lambda = 0; nan_cntr_v_mu = 0; inf_cntr_v_mu = 0; nan_cntr_v_lambda = 0; inf_cntr_v_lambda = 0; 
+    nan_cntr_w0 = 0; inf_cntr_w0 = 0; nan_cntr_w = 0; inf_cntr_w = 0; nan_cntr_v = 0; inf_cntr_v = 0; nan_cntr_alpha = 0; inf_cntr_alpha = 0; nan_cntr_w_mu = 0; inf_cntr_w_mu = 0; nan_cntr_w_lambda = 0; inf_cntr_w_lambda = 0; nan_cntr_v_mu = 0; inf_cntr_v_mu = 0; nan_cntr_v_lambda = 0; inf_cntr_v_lambda = 0;
 
     draw_all(train);
 
@@ -140,9 +140,9 @@ void fm_learn_mcmc_simultaneous::_learn(Data& train, Data& test) {
         if (i >= 5) {
           pred_sum_all_but5(c) += p;
         }
-      }  
+      }
 
-      // Evaluate the training dataset and update the e-terms 
+      // Evaluate the training dataset and update the e-terms
       for (uint c = 0; c < train.num_cases; c++) {
         double p = cache[c].e;
         p = std::min(max_target, p);
@@ -150,7 +150,7 @@ void fm_learn_mcmc_simultaneous::_learn(Data& train, Data& test) {
         double err = p - train.target(c);
         rmse_train += err*err;
         cache[c].e = cache[c].e - train.target(c);
-      }  
+      }
       rmse_train = std::sqrt(rmse_train/train.num_cases);
 
     } else if (task == TASK_CLASSIFICATION) {
@@ -163,12 +163,12 @@ void fm_learn_mcmc_simultaneous::_learn(Data& train, Data& test) {
         if (i >= 5) {
           pred_sum_all_but5(c) += p;
         }
-      }  
+      }
 
-      // Evaluate the training dataset and update the e-terms 
+      // Evaluate the training dataset and update the e-terms
       uint _acc_train = 0;
       for (uint c = 0; c < train.num_cases; c++) {
-        double p = cache[c].e;            
+        double p = cache[c].e;
         p = cdf_gaussian(p);
         if (((p >= 0.5) && (train.target(c) > 0.0)) || ((p < 0.5) && (train.target(c) < 0.0))) {
           _acc_train++;
@@ -182,7 +182,7 @@ void fm_learn_mcmc_simultaneous::_learn(Data& train, Data& test) {
             // the target is the expected value of the truncated normal
             double mu = cache[c].e;
             double phi_minus_mu = exp(-mu*mu/2.0) / sqrt(3.141*2);
-            double Phi_minus_mu = cdf_gaussian(-mu);    
+            double Phi_minus_mu = cdf_gaussian(-mu);
             sampled_target = mu + phi_minus_mu / (1-Phi_minus_mu);
           }
         } else {
@@ -192,13 +192,13 @@ void fm_learn_mcmc_simultaneous::_learn(Data& train, Data& test) {
             // the target is the expected value of the truncated normal
             double mu = cache[c].e;
             double phi_minus_mu = exp(-mu*mu/2.0) / sqrt(3.141*2);
-            double Phi_minus_mu = cdf_gaussian(-mu);      
-            sampled_target = mu - phi_minus_mu / Phi_minus_mu; 
+            double Phi_minus_mu = cdf_gaussian(-mu);
+            sampled_target = mu - phi_minus_mu / Phi_minus_mu;
           }
         }
         cache[c].e = cache[c].e - sampled_target;
-      }  
-      acc_train = (double) _acc_train / train.num_cases; 
+      }
+      acc_train = (double) _acc_train / train.num_cases;
 
     } else {
       throw "unknown task";
@@ -211,7 +211,7 @@ void fm_learn_mcmc_simultaneous::_learn(Data& train, Data& test) {
       log->log("time_learn", iteration_time);
       log->log("time_learn2", (double)iteration_time3 / CLOCKS_PER_SEC);
       log->log("time_learn4", (double)iteration_time4);
-    }  
+    }
 
 
     // Evaluate the test data sets
@@ -308,7 +308,7 @@ void fm_learn_mcmc_simultaneous::_evaluate_class(DVector<double>& pred, DVector<
     if (pll < 0.01) { pll = 0.01; }
     _loglikelihood -= m*log10(pll) + (1-m)*log10(1-pll);
     num_cases++;
-  } 
+  }
   loglikelihood = _loglikelihood/num_cases;
   accuracy = (double) _accuracy / num_cases;
 }

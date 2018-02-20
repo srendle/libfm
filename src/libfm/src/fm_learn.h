@@ -32,7 +32,7 @@ class fm_learn {
   protected:
     DVector<double> sum, sum_sqr;
     DMatrix<double> pred_q_term;
-    
+
     // this function can be overwritten (e.g. for MCMC)
     virtual double predict_case(Data& data);
 
@@ -42,29 +42,29 @@ class fm_learn {
     double min_target;
     double max_target;
 
-    int task; // 0=regression, 1=classification  
+    int task; // 0=regression, 1=classification
 
     const static int TASK_REGRESSION = 0;
     const static int TASK_CLASSIFICATION = 1;
- 
-    Data* validation;  
+
+    Data* validation;
 
 
     RLog* log;
 
     fm_learn();
-    
-    
+
+
     virtual void init();
 
     virtual double evaluate(Data& data);
 
   public:
     virtual void learn(Data& train, Data& test) { }
-    
+
     virtual void predict(Data& data, DVector<double>& out) = 0;
-    
-    virtual void debug(); 
+
+    virtual void debug();
 
   protected:
     virtual double evaluate_classification(Data& data);
@@ -113,10 +113,10 @@ double fm_learn::evaluate(Data& data) {
   }
 }
 
-void fm_learn::debug() { 
+void fm_learn::debug() {
   std::cout << "task=" << task << std::endl;
   std::cout << "min_target=" << min_target << std::endl;
-  std::cout << "max_target=" << max_target << std::endl;    
+  std::cout << "max_target=" << max_target << std::endl;
 }
 
 double fm_learn::evaluate_classification(Data& data) {
@@ -126,8 +126,8 @@ double fm_learn::evaluate_classification(Data& data) {
     double p = predict_case(data);
     if (((p >= 0) && (data.target(data.data->getRowIndex()) >= 0)) || ((p < 0) && (data.target(data.data->getRowIndex()) < 0))) {
       num_correct++;
-    }  
-  }  
+    }
+  }
   eval_time = (getusertime() - eval_time);
   // log the values
   if (log != NULL) {
@@ -143,13 +143,13 @@ double fm_learn::evaluate_regression(Data& data) {
   double mae_sum_abs = 0;
   double eval_time = getusertime();
   for (data.data->begin(); !data.data->end(); data.data->next()) {
-    double p = predict_case(data); 
+    double p = predict_case(data);
     p = std::min(max_target, p);
     p = std::max(min_target, p);
     double err = p - data.target(data.data->getRowIndex());
     rmse_sum_sqr += err*err;
-    mae_sum_abs += std::abs((double)err);  
-  }  
+    mae_sum_abs += std::abs((double)err);
+  }
   eval_time = (getusertime() - eval_time);
   // log the values
   if (log != NULL) {

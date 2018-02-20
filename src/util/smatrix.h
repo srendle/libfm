@@ -34,7 +34,7 @@ template <typename T> class SparseVector : public std::map<int,T> {
     void toStream(std::ostream &stream);
 };
 
-template <typename T>  class SparseMatrix : public std::map<int, SparseVector<T> > { 
+template <typename T>  class SparseMatrix : public std::map<int, SparseVector<T> > {
   public:
     T get(int x, int y);
     void toStream(std::ostream &stream);
@@ -151,7 +151,7 @@ template <typename T> void SparseTensor<T>::fromFile(const std::string &filename
       T value;
       fData >> value;
       (*this)[t][m][v] = value;
-    } 
+    }
   }
   fData.close();
 }
@@ -169,7 +169,7 @@ template <typename T> void SparseMatrix<T>::fromFile(const std::string &filename
       T value;
       fData >> value;
       (*this)[t][m] = value;
-    } 
+    }
   }
   fData.close();
 }
@@ -210,7 +210,7 @@ void SparseTensorBoolean::toStream(std::ostream &stream) {
     }
   }
 }
-  
+
 void SparseTensorBoolean::toFile(const std::string &filename) {
   std::ofstream out_file (filename.c_str());
   if (out_file.is_open())  {
@@ -218,25 +218,25 @@ void SparseTensorBoolean::toFile(const std::string &filename) {
     out_file.close();
   } else {
     throw "Unable to open file " + filename;
-  }  
-  
+  }
+
 }
 
 void SparseTensorBoolean::fromFile(const std::string &filename) {
   std::ifstream fData (filename.c_str());
     if (! fData.is_open()) {
     throw "Unable to open file " + filename;
-  }  
-  while (! fData.eof()) {  
+  }
+  while (! fData.eof()) {
     int t, m, v;
     fData >> t;
     fData >> m;
     if (! fData.eof()) {
       fData >> v;
-      (*this)[t][m].insert(v);  
-    } 
+      (*this)[t][m].insert(v);
+    }
   }
-  fData.close();    
+  fData.close();
 }
 
 
@@ -244,16 +244,16 @@ void SparseMatrixBoolean::fromFile(const std::string &filename) {
   std::ifstream fData (filename.c_str());
     if (! fData.is_open()) {
     throw "Unable to open file " + filename;
-  }  
-  while (! fData.eof()) {  
+  }
+  while (! fData.eof()) {
     int  m, v;
     fData >> m;
     if (! fData.eof()) {
       fData >> v;
-      (*this)[m].insert(v);  
-    } 
+      (*this)[m].insert(v);
+    }
   }
-  fData.close();    
+  fData.close();
 }
 
 #endif /*SMATRIX_H_*/

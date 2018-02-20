@@ -18,7 +18,7 @@
 //
 //
 // transpose: Convert a libfm-format file in a binary sparse matrix for x and
-// a dense vector for the target y. 
+// a dense vector for the target y.
 
 #include <cstdlib>
 #include <cstdio>
@@ -32,10 +32,10 @@
 #include "../src/Data.h"
 
 /**
- * 
+ *
  * Version history:
  * 1.4.2:
- *  changed license to GPLv3 
+ *  changed license to GPLv3
  * 1.4.0:
  *  no differences, version numbers are kept in sync over all libfm tools
  * 1.3.6:
@@ -47,13 +47,13 @@
  * 1.0:
  *  first version
  */
- 
+
 
 
 using namespace std;
 
-int main(int argc, char **argv) { 
-   
+int main(int argc, char **argv) {
+
   srand ( time(NULL) );
   try {
     CMDLine cmdline(argc, argv);
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
     std::cout << "This is free software, and you are welcome to redistribute it under certain"  << std::endl;
     std::cout << "conditions; for details see license.txt." << std::endl;
     std::cout << "----------------------------------------------------------------------------" << std::endl;
-    
+
     const std::string param_ifile   = cmdline.registerParameter("ifile", "input file name, file has to be in binary sparse format [MANDATORY]");
     const std::string param_ofilex  = cmdline.registerParameter("ofilex", "output file name for x [MANDATORY]");
     const std::string param_ofiley  = cmdline.registerParameter("ofiley", "output file name for y [MANDATORY]");
@@ -108,29 +108,29 @@ int main(int argc, char **argv) {
         if (sscanf(pline, "%f%n", &_value, &nchar) >=1) {
           pline += nchar;
           min_target = std::min(_value, min_target);
-          max_target = std::max(_value, max_target);      
+          max_target = std::max(_value, max_target);
           num_rows++;
           while (sscanf(pline, "%d:%f%n", &_feature, &_value, &nchar) >= 2) {
-            pline += nchar;  
+            pline += nchar;
             num_feature = std::max(_feature, num_feature);
             has_feature = true;
-            num_values++;  
+            num_values++;
           }
           while ((*pline != 0) && ((*pline == ' ')  || (*pline == 9))) { pline++; } // skip trailing spaces
-          if ((*pline != 0)  && (*pline != '#')) { 
+          if ((*pline != 0)  && (*pline != '#')) {
             throw "cannot parse line \"" + line + "\" at character " + pline[0];
           }
         } else {
           throw "cannot parse line \"" + line + "\" at character " + pline[0];
         }
-      } 
+      }
       fData.close();
     }
-    if (has_feature) {  
+    if (has_feature) {
       num_feature++; // number of feature is bigger (by one) than the largest value
     }
     std::cout << "num_rows=" << num_rows << "\tnum_values=" << num_values << "\tnum_features=" << num_feature << "\tmin_target=" << min_target << "\tmax_target=" << max_target << std::endl;
-    
+
     sparse_row<DATA_FLOAT> row;
     row.data = new sparse_entry<DATA_FLOAT>[num_feature];
 
@@ -177,22 +177,22 @@ int main(int argc, char **argv) {
           out_y.write(reinterpret_cast<char*>(&(_value)), sizeof(DATA_FLOAT));
           row.size = 0;
           while (sscanf(pline, "%d:%f%n", &_feature, &_value, &nchar) >= 2) {
-            pline += nchar;  
+            pline += nchar;
             assert(row.size < num_feature);
             row.data[row.size].id = _feature;
             row.data[row.size].value = _value;
-            row.size++;  
+            row.size++;
           }
           out_x.write(reinterpret_cast<char*>(&(row.size)), sizeof(uint));
           out_x.write(reinterpret_cast<char*>(row.data), sizeof(sparse_entry<DATA_FLOAT>)*row.size);
           while ((*pline != 0) && ((*pline == ' ')  || (*pline == 9))) { pline++; } // skip trailing spaces
-          if ((*pline != 0)  && (*pline != '#')) { 
+          if ((*pline != 0)  && (*pline != '#')) {
             throw "cannot parse line \"" + line + "\" at character " + pline[0];
           }
         } else {
           throw "cannot parse line \"" + line + "\" at character " + pline[0];
         }
-      }  
+      }
       fData.close();
       out_x.close();
       out_y.close();

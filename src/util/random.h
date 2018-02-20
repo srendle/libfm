@@ -32,12 +32,12 @@ double ran_left_tgaussian(double left);
 double ran_left_tgaussian(double left, double mean, double stdev);
 double ran_left_tgaussian_naive(double left);
 double ran_uniform();
-double ran_exp();      
+double ran_exp();
 double ran_gamma(double alpha, double beta);
 double ran_gamma(double alpha);
 bool ran_bernoulli(double p);
 
-double erf(double x);  
+double erf(double x);
 double cdf_gaussian(double x, double mean, double stdev);
 double cdf_gaussian(double x);
 
@@ -100,7 +100,7 @@ double ran_left_tgaussian_naive(double left) {
 }
 
 double ran_left_tgaussian(double left, double mean, double stdev) {
-  return mean + stdev * ran_left_tgaussian((left-mean)/stdev); 
+  return mean + stdev * ran_left_tgaussian((left-mean)/stdev);
 }
 
 double ran_right_tgaussian(double right) {
@@ -108,7 +108,7 @@ double ran_right_tgaussian(double right) {
 }
 
 double ran_right_tgaussian(double right, double mean, double stdev) {
-  return mean + stdev * ran_right_tgaussian((right-mean)/stdev); 
+  return mean + stdev * ran_right_tgaussian((right-mean)/stdev);
 }
 
 
@@ -133,7 +133,7 @@ double ran_gamma(double alpha) {
       } while (v <= 0.0);
       v = v * v * v;
       u = ran_uniform();
-    } while ( 
+    } while (
       (u >= (1.0 - 0.0331 * (x*x) * (x*x)))
        && (log(u) >= (0.5 * x * x + d * (1.0 - v + std::log(v))))
        );
@@ -151,13 +151,13 @@ double ran_gaussian() {
   do {
     do {
       u = ran_uniform();
-    } while (u == 0.0); 
+    } while (u == 0.0);
     v = 1.7156 * (ran_uniform() - 0.5);
     x = u - 0.449871;
     y = std::abs(v) + 0.386595;
     Q = x*x + y*(0.19600*y-0.25472*x);
     if (Q < 0.27597) { break; }
-  } while ((Q > 0.27846) || ((v*v) > (-4.0*u*u*std::log(u)))); 
+  } while ((Q > 0.27846) || ((v*v) > (-4.0*u*u*std::log(u))));
   return v / u;
 }
 

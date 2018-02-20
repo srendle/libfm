@@ -17,7 +17,7 @@
 // along with libFM.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
-// relation.h: Data and Links for Relations 
+// relation.h: Data and Links for Relations
 
 #ifndef RELATION_DATA_H_
 #define RELATION_DATA_H_
@@ -35,16 +35,16 @@ class RelationData {
     bool has_xt;
     bool has_x;
   public:
-    RelationData(uint cache_size, bool has_x, bool has_xt); 
+    RelationData(uint cache_size, bool has_x, bool has_xt);
     DataMetaInfo* meta;
 
     LargeSparseMatrix<DATA_FLOAT>* data_t;
     LargeSparseMatrix<DATA_FLOAT>* data;
-  
+
     int num_feature;
     uint num_cases;
-    uint attr_offset; 
- 
+    uint attr_offset;
+
     void load(std::string filename);
     void debug();
 };
@@ -58,7 +58,7 @@ class RelationJoin {
 };
 
 // Implementation
-RelationData::RelationData(uint cache_size, bool has_x, bool has_xt) { 
+RelationData::RelationData(uint cache_size, bool has_x, bool has_xt) {
   this->data_t = NULL;
   this->data = NULL;
   this->cache_size = cache_size;
@@ -76,11 +76,11 @@ void RelationData::load(std::string filename) {
   uint num_values = 0;
   uint this_cs = cache_size;
   if (has_xt && has_x) { this_cs /= 2; }
-  
+
   if (has_x) {
     std::cout << "data... ";
     this->data = new LargeSparseMatrixHD<DATA_FLOAT>(filename + ".x", this_cs);
-    this->num_feature = this->data->getNumCols();  
+    this->num_feature = this->data->getNumCols();
     num_values = this->data->getNumValues();
     num_cases = this->data->getNumRows();
   } else {
@@ -95,7 +95,7 @@ void RelationData::load(std::string filename) {
   } else {
     data_t = NULL;
   }
-  
+
   if (has_xt && has_x) {
     assert(this->data->getNumCols() == this->data_t->getNumRows());
     assert(this->data->getNumRows() == this->data_t->getNumCols());
@@ -105,7 +105,7 @@ void RelationData::load(std::string filename) {
   std::cout << "num_cases=" << this->num_cases << "\tnum_values=" << num_values << "\tnum_features=" << this->num_feature << std::endl;
 
   meta = new DataMetaInfo(this->num_feature);
-    
+
   if (fileexists(filename + ".groups")) {
     meta->loadGroupsFromFile(filename + ".groups");
   }
@@ -116,11 +116,11 @@ void RelationData::debug() {
   if (has_x) {
     for (data->begin(); (!data->end()) && (data->getRowIndex() < 4); data->next() ) {
       for (uint j = 0; j < data->getRow().size; j++) {
-        std::cout << " " << data->getRow().data[j].id << ":" << data->getRow().data[j].value;  
+        std::cout << " " << data->getRow().data[j].id << ":" << data->getRow().data[j].value;
       }
       std::cout << std::endl;
     }
-  }  
+  }
 }
 
 void RelationJoin::load(std::string filename, uint expected_row_count) {

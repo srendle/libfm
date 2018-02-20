@@ -90,7 +90,7 @@ foreach my $file_name (@files) {
 			my $out_col_id = 0; ## says which column in the input a field corresponds to after "deleting" the "delete_column", i.e. it is a counter over the #$data-field in @data assuming that some of the columns have been deleted; one can see this as the "group" id
 			for (my $i = 0; $i <= $#data; $i++) {
 				if (($i != $target_column) && (! exists $delete_column{$i})) {
-					my $col_id = $out_col_id . " " . $data[$i]; ## this id holds the unique id of $data[$i] (also w.r.t. its group) 
+					my $col_id = $out_col_id . " " . $data[$i]; ## this id holds the unique id of $data[$i] (also w.r.t. its group)
 					if (! exists $id{$col_id}) {
 						$id{$col_id} = $id_cntr;
 						if (defined $file_out_meta) {

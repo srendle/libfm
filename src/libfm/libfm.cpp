@@ -32,7 +32,7 @@
 //   and Low-rank Approximation (NIPS-WS 2011), Spain.
 // - Steffen Rendle (2012): Learning Recommender Systems with Adaptive
 //   Regularization, in Proceedings of the 5th ACM International Conference on
-//   Web Search and Data Mining (WSDM 2012), Seattle, USA.  
+//   Web Search and Data Mining (WSDM 2012), Seattle, USA.
 // - Steffen Rendle (2012): Factorization Machines with libFM, ACM Transactions
 //   on Intelligent Systems and Technology (TIST 2012).
 // - Steffen Rendle (2013): Scaling Factorization Machines to Relational Data,
@@ -59,8 +59,8 @@
 
 using namespace std;
 
-int main(int argc, char **argv) { 
-   
+int main(int argc, char **argv) {
+
   try {
     CMDLine cmdline(argc, argv);
     std::cout << "----------------------------------------------------------------------------" << std::endl;
@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
     std::cout << "This is free software, and you are welcome to redistribute it under certain" << std::endl;
     std::cout << "conditions; for details see license.txt." << std::endl;
     std::cout << "----------------------------------------------------------------------------" << std::endl;
-    
+
     const std::string param_task       = cmdline.registerParameter("task", "r=regression, c=binary classification [MANDATORY]");
     const std::string param_meta_file  = cmdline.registerParameter("meta", "filename for meta information about data set");
     const std::string param_train_file = cmdline.registerParameter("train", "filename for training data [MANDATORY]");
@@ -110,7 +110,7 @@ int main(int argc, char **argv) {
       return 0;
     }
     cmdline.checkParameters();
-    
+
     // Seed
     long int seed = cmdline.getValue(param_seed, time(NULL));
     srand ( seed );
@@ -136,7 +136,7 @@ int main(int argc, char **argv) {
       cmdline.setValue(param_method, "mcmc");
       if (! cmdline.hasParameter(param_do_sampling)) { cmdline.setValue(param_do_sampling, "0"); }
       if (! cmdline.hasParameter(param_do_multilevel)) { cmdline.setValue(param_do_multilevel, "0"); }
-    } 
+    }
 
     // (1) Load the data
     std::cout << "Loading train...\t" << std::endl;
@@ -177,7 +177,7 @@ int main(int argc, char **argv) {
     // (1.2) Load relational data
     {
       vector<std::string> rel = cmdline.getStrValues(param_relation);
-    
+
       std::cout << "#relations: " << rel.size() << std::endl;
       relation.setSize(rel.size());
       train.relation.setSize(rel.size());
@@ -195,10 +195,10 @@ int main(int argc, char **argv) {
         test.relation(i).load(rel[i] + ".test", test.num_cases);
       }
     }
-    
+
     // (1.3) Load meta data
     std::cout << "Loading meta data...\t" << std::endl;
-    
+
     // (main table)
     uint num_all_attribute = std::max(train.num_feature, test.num_feature);
     if (validation != NULL) {
@@ -208,7 +208,7 @@ int main(int argc, char **argv) {
     if (cmdline.hasParameter(param_meta_file)) {
       meta_main.loadGroupsFromFile(cmdline.getValue(param_meta_file));
     }
-    
+
     // build the joined meta table
     for (uint r = 0; r < train.relation.dim; r++) {
       train.relation(r).data->attr_offset = num_all_attribute;
@@ -221,7 +221,7 @@ int main(int argc, char **argv) {
         meta.num_attr_groups += relation(r)->meta->num_attr_groups;
       }
       meta.num_attr_per_group.setSize(meta.num_attr_groups);
-      meta.num_attr_per_group.init(0);    
+      meta.num_attr_per_group.init(0);
       for (uint i = 0; i < meta_main.attr_group.dim; i++) {
         meta.attr_group(i) = meta_main.attr_group(i);
         meta.num_attr_per_group(meta.attr_group(i))++;
@@ -247,17 +247,17 @@ int main(int argc, char **argv) {
       fm.num_attribute = num_all_attribute;
       fm.init_stdev = cmdline.getValue(param_init_stdev, 0.1);
       // set the number of dimensions in the factorization
-      { 
+      {
         vector<int> dim = cmdline.getIntValues(param_dim);
         assert(dim.size() == 3);
         fm.k0 = dim[0] != 0;
         fm.k1 = dim[1] != 0;
-        fm.num_factor = dim[2];          
-      }      
-      fm.init();    
-      
+        fm.num_factor = dim[2];
+      }
+      fm.init();
+
     }
-    
+
     // (2.1) load the FM model
     if (cmdline.hasParameter(param_load_model)) {
       std::cout << "Reading FM model... \t" << std::endl;
@@ -274,7 +274,7 @@ int main(int argc, char **argv) {
       ((fm_learn_sgd*)fml)->num_iter = cmdline.getValue(param_num_iter, 100);
 
     } else if (! cmdline.getValue(param_method).compare("sgda")) {
-      assert(validation != NULL);    
+      assert(validation != NULL);
       fml = new fm_learn_sgd_element_adapt_reg();
       ((fm_learn_sgd*)fml)->num_iter = cmdline.getValue(param_num_iter, 100);
       ((fm_learn_sgd_element_adapt_reg*)fml)->validation = validation;
@@ -285,7 +285,7 @@ int main(int argc, char **argv) {
       fml->validation = validation;
       ((fm_learn_mcmc*)fml)->num_iter = cmdline.getValue(param_num_iter, 100);
       ((fm_learn_mcmc*)fml)->num_eval_cases = cmdline.getValue(param_num_eval_cases, test.num_cases);
-    
+
       ((fm_learn_mcmc*)fml)->do_sample = cmdline.getValue(param_do_sampling, true);
       ((fm_learn_mcmc*)fml)->do_multilevel = cmdline.getValue(param_do_multilevel, true);
     } else {
@@ -307,9 +307,9 @@ int main(int argc, char **argv) {
     } else {
       throw "unknown task";
     }
-    
+
     // (4) init the logging
-    RLog* rlog = NULL;   
+    RLog* rlog = NULL;
     if (cmdline.hasParameter(param_r_log)) {
       ofstream* out_rlog = NULL;
       std::string r_log_str = cmdline.getValue(param_r_log);
@@ -320,12 +320,12 @@ int main(int argc, char **argv) {
       std::cout << "logging to " << r_log_str.c_str() << std::endl;
       rlog = new RLog(out_rlog);
     }
-     
+
     fml->log = rlog;
     fml->init();
     if (! cmdline.getValue(param_method).compare("mcmc")) {
       // set the regularization; for als and mcmc this can be individual per group
-      { 
+      {
         vector<double> reg = cmdline.getDblValues(param_regular);
         assert((reg.size() == 0) || (reg.size() == 1) || (reg.size() == 3) || (reg.size() == (1+meta.num_attr_groups*2)));
         if (reg.size() == 0) {
@@ -339,7 +339,7 @@ int main(int argc, char **argv) {
           fm.regw = reg[0];
           fm.regv = reg[0];
           ((fm_learn_mcmc*)fml)->w_lambda.init(fm.regw);
-          ((fm_learn_mcmc*)fml)->v_lambda.init(fm.regv);          
+          ((fm_learn_mcmc*)fml)->v_lambda.init(fm.regv);
         } else if (reg.size() == 3) {
           fm.reg0 = reg[0];
           fm.regw = reg[1];
@@ -359,13 +359,13 @@ int main(int argc, char **argv) {
             for (int f = 0; f < fm.num_factor; f++) {
               ((fm_learn_mcmc*)fml)->v_lambda(g,f) = reg[j];
             }
-             j++;
+            j++;
           }
         }
       }
     } else {
       // set the regularization; for standard SGD, groups are not supported
-      { 
+      {
         vector<double> reg = cmdline.getDblValues(param_regular);
         assert((reg.size() == 0) || (reg.size() == 1) || (reg.size() == 3));
         if (reg.size() == 0) {
@@ -380,14 +380,14 @@ int main(int argc, char **argv) {
           fm.reg0 = reg[0];
           fm.regw = reg[1];
           fm.regv = reg[2];
-        }    
+        }
       }
     }
     {
-      fm_learn_sgd* fmlsgd= dynamic_cast<fm_learn_sgd*>(fml); 
+      fm_learn_sgd* fmlsgd= dynamic_cast<fm_learn_sgd*>(fml);
       if (fmlsgd) {
         // set the learning rates (individual per layer)
-        { 
+        {
           vector<double> lr = cmdline.getDblValues(param_learn_rate);
           assert((lr.size() == 1) || (lr.size() == 3));
           if (lr.size() == 1) {
@@ -398,25 +398,25 @@ int main(int argc, char **argv) {
             fmlsgd->learn_rates(0) = lr[0];
             fmlsgd->learn_rates(1) = lr[1];
             fmlsgd->learn_rates(2) = lr[2];
-          }    
+          }
         }
       }
     }
     if (rlog != NULL) {
       rlog->init();
     }
-    
-    if (cmdline.getValue(param_verbosity, 0) > 0) { 
-      fm.debug();      
-      fml->debug();      
-    }  
 
-    // () learn    
+    if (cmdline.getValue(param_verbosity, 0) > 0) {
+      fm.debug();
+      fml->debug();
+    }
+
+    // () learn
     fml->learn(train, test);
 
     // () Prediction at the end  (not for mcmc and als)
     if (cmdline.getValue(param_method).compare("mcmc")) {
-      std::cout << "Final\t" << "Train=" << fml->evaluate(train) << "\tTest=" << fml->evaluate(test) << std::endl;  
+      std::cout << "Final\t" << "Train=" << fml->evaluate(train) << "\tTest=" << fml->evaluate(test) << std::endl;
     }
 
     // () Save prediction
@@ -424,15 +424,15 @@ int main(int argc, char **argv) {
       DVector<double> pred;
       pred.setSize(test.num_cases);
       fml->predict(test, pred);
-      pred.save(cmdline.getValue(param_out));  
+      pred.save(cmdline.getValue(param_out));
     }
-    
+
     // () save the FM model
     if (cmdline.hasParameter(param_save_model)) {
       std::cout << "Writing FM model to "<< cmdline.getValue(param_save_model) << std::endl;
       fm.saveModel(cmdline.getValue(param_save_model));
     }
-           
+
   } catch (std::string &e) {
     std::cerr << std::endl << "ERROR: " << e << std::endl;
   } catch (char const* &e) {

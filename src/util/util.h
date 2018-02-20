@@ -68,17 +68,17 @@ double getusertime2() {
   return (double) clock_t() / CLOCKS_PER_SEC;
 }
 
-double getusertime() { 
+double getusertime() {
   #ifdef _WIN32
   return getusertime2();
   #else
-  struct rusage ru;        
-  getrusage(RUSAGE_SELF, &ru);        
-  
-  struct timeval tim = ru.ru_utime;        
+  struct rusage ru;
+  getrusage(RUSAGE_SELF, &ru);
+
+  struct timeval tim = ru.ru_utime;
   return (double)tim.tv_sec + (double)tim.tv_usec / 1000000.0;
   #endif
-}   
+}
 
 
 double getusertime3() {
@@ -91,7 +91,7 @@ double getusertime4() {
 
 bool fileexists(std::string filename) {
   std::ifstream in_file (filename.c_str());
-  return in_file.is_open();    
+  return in_file.is_open();
 }
 
 

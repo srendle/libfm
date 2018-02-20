@@ -23,13 +23,13 @@
 // Based on the publication(s):
 // - Steffen Rendle (2012): Learning Recommender Systems with Adaptive
 //   Regularization, in Proceedings of the 5th ACM International Conference on
-//   Web Search and Data Mining (WSDM 2012), Seattle, USA.  
+//   Web Search and Data Mining (WSDM 2012), Seattle, USA.
 //
 // theta' = theta - alpha*(grad_theta + 2*lambda*theta)
 //        = theta(1-2*alpha*lambda) - alpha*grad_theta
 //
 // lambda^* = lambda - alpha*(grad_lambda)
-// with   
+// with
 //  grad_lambdaw0 = (grad l(y(x),y)) * (-2 * alpha * w_0)
 //  grad_lambdawg = (grad l(y(x),y)) * (-2 * alpha * (\sum_{l \in group(g)} x_l * w_l))
 //  grad_lambdafg = (grad l(y(x),y)) * (-2 * alpha * (\sum_{l} x_l * v'_lf) * \sum_{l \in group(g)} x_l * v_lf) - \sum_{l \in group(g)} x^2_l * v_lf * v'_lf)
@@ -52,7 +52,7 @@ class fm_learn_sgd_element_adapt_reg: public fm_learn_sgd {
     DVector<double> mean_v, var_v;
 
     // for each parameter there is one gradient to store
-    DVector<double> grad_w; 
+    DVector<double> grad_w;
     DMatrix<double> grad_v;
 
     Data* validation;
@@ -101,7 +101,7 @@ void fm_learn_sgd_element_adapt_reg::init() {
 
   if (log != NULL) {
     log->addField("rmse_train", std::numeric_limits<double>::quiet_NaN());
-    log->addField("rmse_val", std::numeric_limits<double>::quiet_NaN());  
+    log->addField("rmse_val", std::numeric_limits<double>::quiet_NaN());
 
     log->addField("wmean", std::numeric_limits<double>::quiet_NaN());
     log->addField("wvar", std::numeric_limits<double>::quiet_NaN());
@@ -158,29 +158,29 @@ void fm_learn_sgd_element_adapt_reg::sgd_theta_step(sparse_row<FM_FLOAT>& x, con
       grad_w(x.data[i].id) = mult * x.data[i].value;
       w -= learn_rate * (grad_w(x.data[i].id) + 2 * reg_w(g) * w);
     }
-  }  
+  }
   for (int f = 0; f < fm->num_factor; f++) {
     for (uint i = 0; i < x.size; i++) {
       uint g = meta->attr_group(x.data[i].id);
       double& v = fm->v(f,x.data[i].id);
-      grad_v(f,x.data[i].id) = mult * (x.data[i].value * (sum(f) - v * x.data[i].value)); // grad_v_if = (y(x)-y) * [ x_i*(\sum_j x_j v_jf) - v_if*x^2 ]      
+      grad_v(f,x.data[i].id) = mult * (x.data[i].value * (sum(f) - v * x.data[i].value)); // grad_v_if = (y(x)-y) * [ x_i*(\sum_j x_j v_jf) - v_if*x^2 ]
       v -= learn_rate * (grad_v(f,x.data[i].id) + 2 * reg_v(g,f) * v);
     }
-  }  
+  }
 }
 
 double fm_learn_sgd_element_adapt_reg::predict_scaled(sparse_row<FM_FLOAT>& x) {
   double p = 0.0;
   if (fm->k0) {
-    p += fm->w0; 
+    p += fm->w0;
   }
   if (fm->k1) {
     for (uint i = 0; i < x.size; i++) {
       assert(x.data[i].id < fm->num_attribute);
       uint g = meta->attr_group(x.data[i].id);
-      double& w = fm->w(x.data[i].id); 
+      double& w = fm->w(x.data[i].id);
       double w_dash = w - learn_rate * (grad_w(x.data[i].id) + 2 * reg_w(g) * w);
-      p += w_dash * x.data[i].value; 
+      p += w_dash * x.data[i].value;
     }
   }
   for (int f = 0; f < fm->num_factor; f++) {
@@ -188,7 +188,7 @@ double fm_learn_sgd_element_adapt_reg::predict_scaled(sparse_row<FM_FLOAT>& x) {
     sum_sqr(f) = 0.0;
     for (uint i = 0; i < x.size; i++) {
       uint g = meta->attr_group(x.data[i].id);
-      double& v = fm->v(f,x.data[i].id); 
+      double& v = fm->v(f,x.data[i].id);
       double v_dash = v - learn_rate * (grad_v(f,x.data[i].id) + 2 * reg_v(g,f) * v);
       double d = v_dash * x.data[i].value;
       sum(f) += d;
@@ -214,10 +214,10 @@ void fm_learn_sgd_element_adapt_reg::sgd_lambda_step(sparse_row<FM_FLOAT>& x, co
     lambda_w_grad.init(0.0);
     for (uint i = 0; i < x.size; i++) {
       uint g = meta->attr_group(x.data[i].id);
-      lambda_w_grad(g) += x.data[i].value * fm->w(x.data[i].id); 
+      lambda_w_grad(g) += x.data[i].value * fm->w(x.data[i].id);
     }
     for (uint g = 0; g < meta->num_attr_groups; g++) {
-      lambda_w_grad(g) = -2 * learn_rate * lambda_w_grad(g); 
+      lambda_w_grad(g) = -2 * learn_rate * lambda_w_grad(g);
       reg_w(g) -= learn_rate * grad_loss * lambda_w_grad(g);
       reg_w(g) = std::max(0.0, reg_w(g));
     }
@@ -231,17 +231,17 @@ void fm_learn_sgd_element_adapt_reg::sgd_lambda_step(sparse_row<FM_FLOAT>& x, co
     sum_f.init(0.0);
     sum_f_dash_f.init(0.0);
     for (uint i = 0; i < x.size; i++) {
-      // v_if' =  [ v_if * (1-alpha*lambda_v_f) - alpha * grad_v_if] 
+      // v_if' =  [ v_if * (1-alpha*lambda_v_f) - alpha * grad_v_if]
       uint g = meta->attr_group(x.data[i].id);
-      double& v = fm->v(f,x.data[i].id); 
+      double& v = fm->v(f,x.data[i].id);
       double v_dash = v - learn_rate * (grad_v(f,x.data[i].id) + 2 * reg_v(g,f) * v);
 
       sum_f_dash += v_dash * x.data[i].value;
-      sum_f(g) += v * x.data[i].value; 
+      sum_f(g) += v * x.data[i].value;
       sum_f_dash_f(g) += v_dash * x.data[i].value * v * x.data[i].value;
     }
     for (uint g = 0; g < meta->num_attr_groups; g++) {
-      double lambda_v_grad = -2 * learn_rate *  (sum_f_dash * sum_f(g) - sum_f_dash_f(g));  
+      double lambda_v_grad = -2 * learn_rate *  (sum_f_dash * sum_f(g) - sum_f_dash_f(g));
       reg_v(g,f) -= learn_rate * grad_loss * lambda_v_grad;
       reg_v(g,f) = std::max(0.0, reg_v(g,f));
     }
@@ -277,13 +277,13 @@ void fm_learn_sgd_element_adapt_reg::update_means() {
 void fm_learn_sgd_element_adapt_reg::learn(Data& train, Data& test) {
   fm_learn_sgd::learn(train, test);
 
-  std::cout << "Training using self-adaptive-regularization SGD."<< std::endl << "DON'T FORGET TO SHUFFLE THE ROWS IN TRAINING AND VALIDATION DATA TO GET THE BEST RESULTS." << std::endl; 
+  std::cout << "Training using self-adaptive-regularization SGD."<< std::endl << "DON'T FORGET TO SHUFFLE THE ROWS IN TRAINING AND VALIDATION DATA TO GET THE BEST RESULTS." << std::endl;
 
   // make sure that fm-parameters are initialized correctly (no other side effects)
   fm->w.init(0);
   fm->reg0 = 0;
-  fm->regw = 0; 
-  fm->regv = 0; 
+  fm->regw = 0;
+  fm->regv = 0;
 
   // start with no regularization
   reg_w.init(0.0);
@@ -301,7 +301,7 @@ void fm_learn_sgd_element_adapt_reg::learn(Data& train, Data& test) {
     for (train.data->begin(); !train.data->end(); train.data->next()) {
       sgd_theta_step(train.data->getRow(), train.target(train.data->getRowIndex()));
 
-      if (i > 0) { // make no lambda steps in the first iteration, because some of the gradients (grad_theta) might not be initialized. 
+      if (i > 0) { // make no lambda steps in the first iteration, because some of the gradients (grad_theta) might not be initialized.
         if (validation->data->end()) {
           update_means();
           validation->data->begin();
@@ -319,8 +319,8 @@ void fm_learn_sgd_element_adapt_reg::learn(Data& train, Data& test) {
     double rmse_test = evaluate(test);
     std::cout << "#Iter=" << std::setw(3) << i << "\tTrain=" << rmse_train << "\tTest=" << rmse_test << std::endl;
     if (log != NULL) {
-      log->log("wmean", mean_w);            
-      log->log("wvar", var_w);          
+      log->log("wmean", mean_w);
+      log->log("wvar", var_w);
       for (int f = 0; f < fm->num_factor; f++) {
         {
           std::ostringstream ss;
