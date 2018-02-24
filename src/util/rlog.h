@@ -27,21 +27,22 @@
 #include <map>
 
 class RLog {
-  private:
-    std::ostream* out;
-    std::vector<std::string> header;
-    std::map<std::string,double> default_value;
-    std::map<std::string,double> value;
-  public:
-    RLog(std::ostream* stream);
+ public:
+  RLog(std::ostream* stream);
 
-    void log(const std::string& field, double d);
+  void log(const std::string& field, double d);
 
-    void init();
+  void init();
 
-    void addField(const std::string& field_name, double def);
+  void addField(const std::string& field_name, double def);
 
-    void newLine();
+  void newLine();
+
+ private:
+  std::ostream* out;
+  std::vector<std::string> header;
+  std::map<std::string,double> default_value;
+  std::map<std::string,double> value;
 };
 
 // Implementation

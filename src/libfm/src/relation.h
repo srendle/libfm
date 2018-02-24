@@ -30,31 +30,32 @@
 #include "Data.h"
 
 class RelationData {
-  protected:
-    uint cache_size;
-    bool has_xt;
-    bool has_x;
-  public:
-    RelationData(uint cache_size, bool has_x, bool has_xt);
-    DataMetaInfo* meta;
+ public:
+  RelationData(uint cache_size, bool has_x, bool has_xt);
+  void load(std::string filename);
+  void debug();
 
-    LargeSparseMatrix<DATA_FLOAT>* data_t;
-    LargeSparseMatrix<DATA_FLOAT>* data;
+  DataMetaInfo* meta;
 
-    int num_feature;
-    uint num_cases;
-    uint attr_offset;
+  LargeSparseMatrix<DATA_FLOAT>* data_t;
+  LargeSparseMatrix<DATA_FLOAT>* data;
 
-    void load(std::string filename);
-    void debug();
+  int num_feature;
+  uint num_cases;
+  uint attr_offset;
+
+ protected:
+  uint cache_size;
+  bool has_xt;
+  bool has_x;
 };
 
 class RelationJoin {
-  public:
-    DVector<uint> data_row_to_relation_row;
-    RelationData* data;
+ public:
+  void load(std::string filename, uint expected_row_count);
 
-    void load(std::string filename, uint expected_row_count);
+  DVector<uint> data_row_to_relation_row;
+  RelationData* data;
 };
 
 // Implementation

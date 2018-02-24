@@ -27,39 +27,40 @@
 #include "util.h"
 
 class CMDLine {
-  protected:
-    std::map< std::string, std::string > help;
-    std::map< std::string, std::string > value;
-    bool parse_name(std::string& s);
+ public:
+  CMDLine(int argc, char **argv);
 
-  public:
-    std::string delimiter;
+  void setValue(std::string parameter, std::string value);
 
-    CMDLine(int argc, char **argv);
+  bool hasParameter(std::string parameter);
 
-    void setValue(std::string parameter, std::string value);
+  void removeParameter(const std::string& parameter);
 
-    bool hasParameter(std::string parameter);
+  void print_help();
 
-    void removeParameter(const std::string& parameter);
+  const std::string& registerParameter(const std::string& parameter, const std::string& help);
 
-    void print_help();
+  void checkParameters();
 
-    const std::string& registerParameter(const std::string& parameter, const std::string& help);
+  const std::string& getValue(const std::string& parameter);
+  const std::string& getValue(const std::string& parameter, const std::string& default_value);
+  const double getValue(const std::string& parameter, const double& default_value);
+  const long int getValue(const std::string& parameter, const long int& default_value);
+  const int getValue(const std::string& parameter, const int& default_value);
+  const uint getValue(const std::string& parameter, const uint& default_value);
 
-    void checkParameters();
+  std::vector<std::string> getStrValues(const std::string& parameter);
+  std::vector<int> getIntValues(const std::string& parameter);
+  std::vector<double> getDblValues(const std::string& parameter);
+  std::vector<uint> getUIntValues(const std::string& parameter);
 
-    const std::string& getValue(const std::string& parameter);
-    const std::string& getValue(const std::string& parameter, const std::string& default_value);
-    const double getValue(const std::string& parameter, const double& default_value);
-    const long int getValue(const std::string& parameter, const long int& default_value);
-    const int getValue(const std::string& parameter, const int& default_value);
-    const uint getValue(const std::string& parameter, const uint& default_value);
+  std::string delimiter;
 
-    std::vector<std::string> getStrValues(const std::string& parameter);
-    std::vector<int> getIntValues(const std::string& parameter);
-    std::vector<double> getDblValues(const std::string& parameter);
-    std::vector<uint> getUIntValues(const std::string& parameter);
+ protected:
+  bool parse_name(std::string& s);
+
+  std::map<std::string, std::string> help;
+  std::map<std::string, std::string> value;
 };
 
 // Implementation

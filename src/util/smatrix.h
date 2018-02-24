@@ -29,24 +29,24 @@
 #include <set>
 
 template <typename T> class SparseVector : public std::map<int,T> {
-  public:
-    T get(int x);
-    void toStream(std::ostream &stream);
+ public:
+  T get(int x);
+  void toStream(std::ostream &stream);
 };
 
 template <typename T>  class SparseMatrix : public std::map<int, SparseVector<T> > {
-  public:
-    T get(int x, int y);
-    void toStream(std::ostream &stream);
-    void fromFile(const std::string &filename);
+ public:
+  T get(int x, int y);
+  void toStream(std::ostream &stream);
+  void fromFile(const std::string &filename);
 };
 
 template <typename T> class SparseTensor : public std::map<int, SparseMatrix<T> > {
-  public:
-    T get(int x, int y, int z);
-    void toStream(std::ostream &stream);
-    void toFile(const std::string &filename);
-    void fromFile(const std::string &filename);
+ public:
+  T get(int x, int y, int z);
+  void toStream(std::ostream &stream);
+  void toFile(const std::string &filename);
+  void fromFile(const std::string &filename);
 };
 
 class SparseVectorInt : public SparseVector<int> {};
@@ -57,22 +57,22 @@ class SparseMatrixDouble : public SparseMatrix<double> {};
 class SparseTensorDouble : public SparseTensor<double> {};
 
 class SparseVectorBoolean : public std::set<int> {
-  public:
-    bool get(int x);
+ public:
+  bool get(int x);
 };
 
 class SparseMatrixBoolean : public std::map<int, SparseVectorBoolean> {
-  public:
-    bool get(int x, int y);
-    void fromFile(const std::string &filename);
+ public:
+  bool get(int x, int y);
+  void fromFile(const std::string &filename);
 };
 
 class SparseTensorBoolean : public std::map<int, SparseMatrixBoolean> {
-  public:
-    bool get(int x, int y, int z);
-    void toStream(std::ostream &stream);
-    void toFile(const std::string &filename);
-    void fromFile(const std::string &filename);
+ public:
+  bool get(int x, int y, int z);
+  void toStream(std::ostream &stream);
+  void toFile(const std::string &filename);
+  void fromFile(const std::string &filename);
 };
 
 // Implementation

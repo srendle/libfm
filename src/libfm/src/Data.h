@@ -30,48 +30,46 @@
 
 typedef FM_FLOAT DATA_FLOAT;
 
-
-
 class DataMetaInfo {
-  public:
-    DVector<uint> attr_group; // attribute_id -> group_id
-    uint num_attr_groups;
-    DVector<uint> num_attr_per_group;
-    uint num_relations;
+ public:
+  DataMetaInfo(uint num_attributes);
 
-    DataMetaInfo(uint num_attributes);
+  void loadGroupsFromFile(std::string filename);
 
-    void loadGroupsFromFile(std::string filename);
+  void debug();
 
-    void debug();
+  DVector<uint> attr_group; // attribute_id -> group_id
+  uint num_attr_groups;
+  DVector<uint> num_attr_per_group;
+  uint num_relations;
 };
 
 #include "relation.h"
 
 class Data {
-  protected:
-    uint64 cache_size;
-    bool has_xt;
-    bool has_x;
-  public:
-    Data(uint64 cache_size, bool has_x, bool has_xt);
+ public:
+  Data(uint64 cache_size, bool has_x, bool has_xt);
+  void load(std::string filename);
+  void debug();
 
-    LargeSparseMatrix<DATA_FLOAT>* data_t;
-    LargeSparseMatrix<DATA_FLOAT>* data;
-    DVector<DATA_FLOAT> target;
+  LargeSparseMatrix<DATA_FLOAT>* data_t;
+  LargeSparseMatrix<DATA_FLOAT>* data;
+  DVector<DATA_FLOAT> target;
 
-    int num_feature;
-    uint num_cases;
+  int num_feature;
+  uint num_cases;
 
-    DATA_FLOAT min_target;
-    DATA_FLOAT max_target;
+  DATA_FLOAT min_target;
+  DATA_FLOAT max_target;
 
-    DVector<RelationJoin> relation;
+  DVector<RelationJoin> relation;
 
-    void load(std::string filename);
-    void debug();
+ protected:
+  void create_data_t();
 
-    void create_data_t();
+  uint64 cache_size;
+  bool has_xt;
+  bool has_x;
 };
 
 // Implementation

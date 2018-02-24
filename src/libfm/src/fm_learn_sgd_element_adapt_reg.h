@@ -41,40 +41,39 @@
 #include "fm_learn_sgd.h"
 
 class fm_learn_sgd_element_adapt_reg: public fm_learn_sgd {
-  public:
-    // regularization parameter
-    double reg_0; // shrinking the bias towards the mean of the bias (which is the bias) is the same as no regularization.
+ public:
+  virtual void init();
 
-    DVector<double> reg_w;
-    DMatrix<double> reg_v;
+  void sgd_theta_step(sparse_row<FM_FLOAT>& x, const DATA_FLOAT target);
 
-    double mean_w, var_w;
-    DVector<double> mean_v, var_v;
+  double predict_scaled(sparse_row<FM_FLOAT>& x);
 
-    // for each parameter there is one gradient to store
-    DVector<double> grad_w;
-    DMatrix<double> grad_v;
+  void sgd_lambda_step(sparse_row<FM_FLOAT>& x, const DATA_FLOAT target);
 
-    Data* validation;
+  void update_means();
 
-    // local parameters in the lambda_update step
-    DVector<double> lambda_w_grad;
-    DVector<double> sum_f, sum_f_dash_f;
+  virtual void learn(Data& train, Data& test);
 
+  void debug();
 
-    virtual void init();
+  // regularization parameter
+  double reg_0; // shrinking the bias towards the mean of the bias (which is the bias) is the same as no regularization.
 
-    void sgd_theta_step(sparse_row<FM_FLOAT>& x, const DATA_FLOAT target);
+  DVector<double> reg_w;
+  DMatrix<double> reg_v;
 
-    double predict_scaled(sparse_row<FM_FLOAT>& x);
+  double mean_w, var_w;
+  DVector<double> mean_v, var_v;
 
-    void sgd_lambda_step(sparse_row<FM_FLOAT>& x, const DATA_FLOAT target);
+  // for each parameter there is one gradient to store
+  DVector<double> grad_w;
+  DMatrix<double> grad_v;
 
-    void update_means();
+  Data* validation;
 
-    virtual void learn(Data& train, Data& test);
-
-    void debug();
+  // local parameters in the lambda_update step
+  DVector<double> lambda_w_grad;
+  DVector<double> sum_f, sum_f_dash_f;
 };
 
 // Implementation

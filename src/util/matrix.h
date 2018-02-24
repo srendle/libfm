@@ -40,66 +40,68 @@ struct dmatrix_file_header {
 };
 
 template <typename T> class DMatrix {
-  public:
-    T** value;
+ public:
+  DMatrix(uint p_dim1, uint p_dim2);
 
-    std::vector<std::string> col_names;
-    uint dim1, dim2;
+  DMatrix();
 
-    T get(uint x, uint y);
+  ~DMatrix();
 
-    DMatrix(uint p_dim1, uint p_dim2);
+  void assign(DMatrix<T>& v);
+  void init(T v);
+  void setSize(uint p_dim1, uint p_dim2);
 
-    DMatrix();
+  T get(uint x, uint y);
+  T& operator() (unsigned x, unsigned y);
+  T operator() (unsigned x, unsigned y) const;
+  T* operator() (unsigned x) const;
 
-    ~DMatrix();
+  void save(std::string filename, bool has_header = false);
+  void saveToBinaryFile(std::string filename);
 
-    void assign(DMatrix<T>& v);
-    void init(T v);
-    void setSize(uint p_dim1, uint p_dim2);
+  void loadFromBinaryFile(std::string filename);
+  void load(std::string filename);
 
-    T& operator() (unsigned x, unsigned y);
-    T operator() (unsigned x, unsigned y) const;
-    T* operator() (unsigned x) const;
-
-    void save(std::string filename, bool has_header = false);
-    void saveToBinaryFile(std::string filename);
-
-    void loadFromBinaryFile(std::string filename);
-    void load(std::string filename);
+  T** value;
+  std::vector<std::string> col_names;
+  uint dim1, dim2;
 };
 
 template <typename T> class DVector {
-  public:
-    uint dim;
-    T* value;
-    DVector();
-    DVector(uint p_dim);
-    ~DVector();
-    T get(uint x);
-    void setSize(uint p_dim);
-    T& operator() (unsigned x);
-    T operator() (unsigned x) const;
-    void init(T v);
-    void assign(T* v);
-    void assign(DVector<T>& v);
+ public:
+  DVector();
+  DVector(uint p_dim);
+  ~DVector();
 
-    void save(std::string filename);
-    void saveToBinaryFile(std::string filename);
+  void setSize(uint p_dim);
 
-    void load(std::string filename);
-    void loadFromBinaryFile(std::string filename);
+  T get(uint x);
+  T& operator() (unsigned x);
+  T operator() (unsigned x) const;
+
+  void init(T v);
+  void assign(T* v);
+  void assign(DVector<T>& v);
+
+  void save(std::string filename);
+  void saveToBinaryFile(std::string filename);
+
+  void load(std::string filename);
+  void loadFromBinaryFile(std::string filename);
+
+  T* value;
+  uint dim;
 };
 
 class DVectorDouble : public DVector<double> {
-  public:
-    void init_normal(double mean, double stdev);
+ public:
+  void init_normal(double mean, double stdev);
 };
 
 class DMatrixDouble : public DMatrix<double> {
-  public:
-    void init(double mean, double stdev);
-    void init_column(double mean, double stdev, int column);
+ public:
+  void init(double mean, double stdev);
+  void init_column(double mean, double stdev, int column);
 };
 
 // Implementation

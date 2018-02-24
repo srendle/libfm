@@ -31,19 +31,17 @@
 #include "../../fm_core/fm_sgd.h"
 
 class fm_learn_sgd: public fm_learn {
-  protected:
-    //DVector<double> sum, sum_sqr;
-  public:
-    int num_iter;
-    double learn_rate;
-    DVector<double> learn_rates;
+ public:
+  virtual void init();
+  virtual void learn(Data& train, Data& test);
+  void SGD(sparse_row<DATA_FLOAT> &x, const double multiplier, DVector<double> &sum);
 
-    virtual void init();
-    virtual void learn(Data& train, Data& test);
-    void SGD(sparse_row<DATA_FLOAT> &x, const double multiplier, DVector<double> &sum);
+  void debug();
+  virtual void predict(Data& data, DVector<double>& out);
 
-    void debug();
-    virtual void predict(Data& data, DVector<double>& out);
+  int num_iter;
+  double learn_rate;
+  DVector<double> learn_rates;
 };
 
 // Implementation

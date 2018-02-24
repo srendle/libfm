@@ -43,7 +43,6 @@
 
 #include <sstream>
 
-
 struct e_q_term {
   double e;
   double q;
@@ -60,91 +59,78 @@ struct relation_cache {
 };
 
 class fm_learn_mcmc : public fm_learn {
-  public:
-    virtual double evaluate(Data& data);
-  protected:
-    virtual double predict_case(Data& data);
-  public:
-    uint num_iter;
-    uint num_eval_cases;
+ public:
+  virtual double evaluate(Data& data);
 
-    double alpha_0, gamma_0, beta_0, mu_0;
-    double alpha;
+  virtual void init();
 
-    double w0_mean_0;
+  virtual void learn(Data& train, Data& test);
 
-    DVector<double> w_mu, w_lambda;
+  virtual void debug();
 
-    DMatrix<double> v_mu, v_lambda;
+  virtual void predict(Data& data, DVector<double>& out);
 
+  uint num_iter;
+  uint num_eval_cases;
 
-    bool do_sample; // switch between choosing expected values and drawing from distribution
-    bool do_multilevel; // use the two-level (hierarchical) model (TRUE) or the one-level (FALSE)
-    uint nan_cntr_v, nan_cntr_w, nan_cntr_w0, nan_cntr_alpha, nan_cntr_w_mu, nan_cntr_w_lambda, nan_cntr_v_mu, nan_cntr_v_lambda;
-    uint inf_cntr_v, inf_cntr_w, inf_cntr_w0, inf_cntr_alpha, inf_cntr_w_mu, inf_cntr_w_lambda, inf_cntr_v_mu, inf_cntr_v_lambda;
+  // Hyperpriors
+  double alpha_0, gamma_0, beta_0, mu_0;
+  double w0_mean_0;
 
-  protected:
-    DVector<double> cache_for_group_values;
-    sparse_row<DATA_FLOAT> empty_data_row; // this is a dummy row for attributes that do not exist in the training data (but in test data)
+  // Priors
+  double alpha;
+  DVector<double> w_mu, w_lambda;
+  DMatrix<double> v_mu, v_lambda;
 
-    DVector<double> pred_sum_all;
-    DVector<double> pred_sum_all_but5;
-    DVector<double> pred_this;
+  // switch between choosing expected values and drawing from distribution
+  bool do_sample;
+  // use the two-level (hierarchical) model (TRUE) or the one-level (FALSE)
+  bool do_multilevel;
 
-    e_q_term* cache;
-    e_q_term* cache_test;
+  uint nan_cntr_v, nan_cntr_w, nan_cntr_w0, nan_cntr_alpha, nan_cntr_w_mu, nan_cntr_w_lambda, nan_cntr_v_mu, nan_cntr_v_lambda;
+  uint inf_cntr_v, inf_cntr_w, inf_cntr_w0, inf_cntr_alpha, inf_cntr_w_mu, inf_cntr_w_lambda, inf_cntr_v_mu, inf_cntr_v_lambda;
 
-    DVector<relation_cache*> rel_cache;
+ protected:
+  virtual double predict_case(Data& data);
+  virtual void _learn(Data& train, Data& test);
 
-    virtual void _learn(Data& train, Data& test);
+  // Predict all datasets mentioned in main_data and store the prediction in the
+  // e-term.
+  void predict_data_and_write_to_eterms(DVector<Data*>& main_data, DVector<e_q_term*>& main_cache);
 
+  // add the q(f)-terms to the main relation q-cache (using only the transpose data)
+  void add_main_q(Data& train, uint f);
 
-    /**
-      This function predicts all datasets mentioned in main_data.
-      It stores the prediction in the e-term.
-    */
-    void predict_data_and_write_to_eterms(DVector<Data*>& main_data, DVector<e_q_term*>& main_cache);
+  void draw_all(Data& train);
 
-  public:
-    virtual void predict(Data& data, DVector<double>& out);
+  // Sample the model parameters w0, w, v. The samplers for w and v have an
+  // additional function for relational data.
+  void draw_w0(double& w0, double& reg, Data& train);
+  void draw_w(double& w, double& w_mu, double& w_lambda, sparse_row<DATA_FLOAT>& feature_data);
+  void draw_w_rel(double& w, double& w_mu, double& w_lambda, sparse_row<DATA_FLOAT>& feature_data, relation_cache* r_cache);
+  void draw_v(double& v, double& v_mu, double& v_lambda, sparse_row<DATA_FLOAT>& feature_data);
+  void draw_v_rel(double& v, double& v_mu, double& v_lambda, sparse_row<DATA_FLOAT>& feature_data, relation_cache* r_cache);
 
-  protected:
-    // add the q(f)-terms to the main relation q-cache (using only the transpose data)
-    void add_main_q(Data& train, uint f);
+  // Sample the priors.
+  void draw_alpha(double& alpha, uint num_train_total);
+  void draw_w_mu(double* w);
+  void draw_w_lambda(double* w);
+  void draw_v_mu();
+  void draw_v_lambda();
 
-    void draw_all(Data& train);
+  DVector<double> cache_for_group_values;
 
-    // Find the optimal value for the global bias (0-way interaction)
-    void draw_w0(double& w0, double& reg, Data& train);
+  // A dummy row for attributes that exist only in the test data.
+  sparse_row<DATA_FLOAT> empty_data_row;
 
-    // Find the optimal value for the 1-way interaction w
-    void draw_w(double& w, double& w_mu, double& w_lambda, sparse_row<DATA_FLOAT>& feature_data);
+  DVector<double> pred_sum_all;
+  DVector<double> pred_sum_all_but5;
+  DVector<double> pred_this;
 
-    // RELATION: Find the optimal value for the 1-way interaction w: RELATION
-    void draw_w_rel(double& w, double& w_mu, double& w_lambda, sparse_row<DATA_FLOAT>& feature_data, relation_cache* r_cache);
+  e_q_term* cache;
+  e_q_term* cache_test;
 
-    // Find the optimal value for the 2-way interaction parameter v
-    void draw_v(double& v, double& v_mu, double& v_lambda, sparse_row<DATA_FLOAT>& feature_data);
-
-    // RELATION: Find the optimal value for the 2-way interaction parameter v: RELATION
-    void draw_v_rel(double& v, double& v_mu, double& v_lambda, sparse_row<DATA_FLOAT>& feature_data, relation_cache* r_cache);
-
-    void draw_alpha(double& alpha, uint num_train_total);
-
-    void draw_w_mu(double* w);
-
-    void draw_w_lambda(double* w);
-
-    void draw_v_mu();
-
-    void draw_v_lambda();
-
-  public:
-    virtual void init();
-
-    virtual void learn(Data& train, Data& test);
-
-    virtual void debug();
+  DVector<relation_cache*> rel_cache;
 };
 
 // Implementation

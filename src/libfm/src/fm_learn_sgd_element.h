@@ -31,10 +31,9 @@
 #include "fm_learn_sgd.h"
 
 class fm_learn_sgd_element: public fm_learn_sgd {
-  public:
-    virtual void init();
-
-    virtual void learn(Data& train, Data& test);
+ public:
+  virtual void init();
+  virtual void learn(Data& train, Data& test);
 };
 
 // Implementation

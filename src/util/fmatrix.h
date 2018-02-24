@@ -50,74 +50,74 @@ struct file_header {
 };
 
 template <typename T> class LargeSparseMatrix {
-  public:
-    virtual void begin() = 0; // go to the beginning
-    virtual bool end() = 0;   // are we at the end?
-    virtual void next() = 0; // go to the next line
-    virtual sparse_row<T>& getRow() = 0; // pointer to the current row
-    virtual uint getRowIndex() = 0; // index of current row (starting with 0)
-    virtual uint getNumRows() = 0; // get the number of Rows
-    virtual uint getNumCols() = 0; // get the number of Cols
-    virtual uint64 getNumValues() = 0; // get the number of Values
+ public:
+  virtual void begin() = 0; // go to the beginning
+  virtual bool end() = 0;   // are we at the end?
+  virtual void next() = 0; // go to the next line
+  virtual sparse_row<T>& getRow() = 0; // pointer to the current row
+  virtual uint getRowIndex() = 0; // index of current row (starting with 0)
+  virtual uint getNumRows() = 0; // get the number of Rows
+  virtual uint getNumCols() = 0; // get the number of Cols
+  virtual uint64 getNumValues() = 0; // get the number of Values
 
+  void saveToBinaryFile(std::string filename);
 
-    void saveToBinaryFile(std::string filename);
-
-    void saveToTextFile(std::string filename);
+  void saveToTextFile(std::string filename);
 };
 
 template <typename T> class LargeSparseMatrixHD : public LargeSparseMatrix<T> {
-  protected:
-    DVector< sparse_row<T> > data;
-    DVector< sparse_entry<T> > cache;
-    std::string filename;
+ public:
+  LargeSparseMatrixHD(std::string filename, uint64 cache_size);
+  // ~LargeSparseMatrixHD() { in.close(); }
 
-    std::ifstream in;
+  virtual uint getNumRows();
+  virtual uint getNumCols();
+  virtual uint64 getNumValues();
 
-    uint64 position_in_data_cache;
-    uint number_of_valid_rows_in_cache;
-    uint64 number_of_valid_entries_in_cache;
-    uint row_index;
+  virtual void next();
+  virtual void begin();
+  virtual bool end();
 
-    uint num_cols;
-    uint64 num_values;
-    uint num_rows;
+  virtual sparse_row<T>& getRow();
+  virtual uint getRowIndex();
 
-    void readcache();
+ protected:
+  void readcache();
 
-  public:
-    LargeSparseMatrixHD(std::string filename, uint64 cache_size);
-//    ~LargeSparseMatrixHD() { in.close(); }
+  DVector< sparse_row<T> > data;
+  DVector< sparse_entry<T> > cache;
+  std::string filename;
 
-    virtual uint getNumRows();
-    virtual uint getNumCols();
-    virtual uint64 getNumValues();
+  std::ifstream in;
 
-    virtual void next();
-    virtual void begin();
-    virtual bool end();
+  uint64 position_in_data_cache;
+  uint number_of_valid_rows_in_cache;
+  uint64 number_of_valid_entries_in_cache;
+  uint row_index;
 
-    virtual sparse_row<T>& getRow();
-    virtual uint getRowIndex();
+  uint num_cols;
+  uint64 num_values;
+  uint num_rows;
 };
 
 template <typename T> class LargeSparseMatrixMemory : public LargeSparseMatrix<T> {
-  protected:
-     uint index;
-  public:
-    DVector< sparse_row<T> > data;
-    uint num_cols;
-    uint64 num_values;
-    virtual void begin();
-    virtual bool end();
-    virtual void next();
-    virtual sparse_row<T>& getRow();
-    virtual uint getRowIndex();
-    virtual uint getNumRows();
-    virtual uint getNumCols();
-    virtual uint64 getNumValues();
+ public:
+  virtual void begin();
+  virtual bool end();
+  virtual void next();
+  virtual sparse_row<T>& getRow();
+  virtual uint getRowIndex();
+  virtual uint getNumRows();
+  virtual uint getNumCols();
+  virtual uint64 getNumValues();
+  // void loadFromTextFile(std::string filename);
 
-//    void loadFromTextFile(std::string filename);
+  DVector< sparse_row<T> > data;
+  uint num_cols;
+  uint64 num_values;
+
+ protected:
+  uint index;
 };
 
 // Implementation
